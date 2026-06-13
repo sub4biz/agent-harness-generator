@@ -41,6 +41,7 @@ npx create-agent-harness my-legal-bot \
 | `pi-dev` | Pi extension (TypeScript, no MCP by design) |
 | `hermes` | `cli-config.yaml` + `optional-mcps/*.yaml` |
 | `openclaw` | `~/.openclaw/openclaw.json` + workspace SKILL.md + install runbook |
+| `rvm` | RVM partition manifest + capability table + wasm-guest + install runbook (hardware-isolated) |
 
 Multi-host: pass `--host` multiple times.
 

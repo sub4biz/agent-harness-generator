@@ -4,6 +4,31 @@ All notable changes to this project are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+### Added — Iter 12 (2026-06-13)
+
+- **Sixth host adapter: `@ruflo/host-rvm`** for
+  [RVM](https://github.com/ruvnet/rvm) — the Agentic Virtual Machine.
+  Positioned as the **hardware-isolated deployment target** (vs the
+  five OS-level adapters)
+  - Generates `rvm-partition.toml` (TOML partition manifest), `capability-
+    table.json` (capability tokens from kernel claims), `wasm-guest.json`
+    (kernel bundle reference + F1–F4 recovery map), and idempotent
+    `install-rvm.sh`
+  - `rightsFromCapability()` maps the kernel's claim-capability strings
+    onto RVM's 7 rights (READ/WRITE/GRANT/REVOKE/EXECUTE/PROVE/GRANT_ONCE)
+  - `defaultProofTier()` derives the right's proof tier (P1 read, P2
+    write/execute, P3 grant/revoke/prove)
+  - `buildCapabilityTable()` lossless lift from kernel claims to RVM caps
+  - **The kernel's WASM bundle IS the RVM guest** — no fork; one source,
+    six deployment targets
+- **ADR-018** documents RVM as the deployment target tier, the claim→
+  capability mapping, the tier picture, trade-offs (AArch64-only, rvm-
+  loader not on crates.io yet)
+- `HOSTS` const in `create-agent-harness` now lists 6 hosts
+- README badge added, host table extended with the hardware-isolated tier
+- USAGE.md + create-agent-harness/README.md host tables updated
+- Topics updated on GitHub
+
 ### Added — Iter 11 (2026-06-13)
 
 - **Fifth host adapter: `@ruflo/host-openclaw`** for

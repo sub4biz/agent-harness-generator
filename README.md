@@ -13,6 +13,7 @@
 [![pi.dev](https://img.shields.io/badge/pi.dev-supported-8b5cf6?style=for-the-badge&logoColor=white)](https://pi.dev/)
 [![Hermes](https://img.shields.io/badge/Hermes_Agent-supported-06b6d4?style=for-the-badge&logoColor=white)](https://hermes-agent.nousresearch.com/docs/)
 [![OpenClaw](https://img.shields.io/badge/OpenClaw-supported-ef4444?style=for-the-badge&logoColor=white)](https://github.com/openclaw/openclaw)
+[![RVM](https://img.shields.io/badge/RVM-hardware--isolated-1f2937?style=for-the-badge&logoColor=white)](https://github.com/ruvnet/rvm)
 
 [![Rust + WASM](https://img.shields.io/badge/kernel-Rust_%2B_WASM-orange?style=for-the-badge&logo=rust)](docs/adrs/ADR-002-kernel-boundary.md)
 [![NAPI-RS](https://img.shields.io/badge/native-NAPI--RS-blue?style=for-the-badge)](https://napi.rs/)
@@ -85,6 +86,7 @@ The kernel is **Rust source code compiled to two targets**: WebAssembly (primary
 | [**pi.dev**](https://pi.dev/) | Pi extension (TypeScript via `pi install npm:...`) | **No MCP by design** — adapter uses `pi.registerTool()` |
 | [**Hermes Agent**](https://hermes-agent.nousresearch.com/docs/) | MCP-supported runtime (`optional-mcps/`) | Adapter scrubs `<think>` + stray `<tool_call>` per [issue #741](https://github.com/NousResearch/hermes-agent/issues/741) |
 | [**OpenClaw**](https://github.com/openclaw/openclaw) | MCP via `~/.openclaw/openclaw.json` + workspace skills | Personal AI assistant gateway with built-in multi-platform messaging (WhatsApp/Telegram/Slack/Discord) |
+| [**RVM**](https://github.com/ruvnet/rvm) | Bare-metal microhypervisor (AArch64) with capability tokens + hash-chained witness | **Hardware-isolated** deployment for federated / multi-tenant / untrusted-peer scenarios (ADR-018) |
 
 See [ADR-004 — Host integration model](docs/adrs/ADR-004-host-integration-model.md).
 
