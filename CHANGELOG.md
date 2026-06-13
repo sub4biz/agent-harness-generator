@@ -4,6 +4,27 @@ All notable changes to this project are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+### Fixed — Iter 31 (2026-06-13)
+
+- **CI `pack+install` job RED on macos+windows since iter 16** —
+  installing each tarball individually meant npm tried to resolve the
+  cross-tarball `@ruflo/*` deps from the registry, where they don't
+  exist pre-publish. Real CI error: `npm error 404 Not Found - GET
+  https://registry.npmjs.org/@ruflo%2fkernel - Not found` ×7 of the
+  11 packages. This was masking real install regressions because every
+  host adapter failed in the same way.
+- **Fix**: rewrote `scripts/install-all.mjs` to do a single batched
+  `npm install <t1.tgz> <t2.tgz> ... <tN.tgz>` call. npm now resolves
+  `@ruflo/*` deps from the OTHER tarballs in the same install set,
+  not the registry. Then a second pass spot-checks each installed
+  package's `package.json` is present under `node_modules/<scope>/<name>/`.
+- **Verified locally**: 11/11 packages install cleanly (was 4/11
+  before the fix). Includes the cross-deps (`host-rvm` finds its
+  `@ruflo/kernel`, `vertical-trading` finds its `@ruflo/vertical-base`,
+  `create-agent-harness` finds its `@ruflo/kernel`).
+- This is the regression class iter 16's pack-install job was
+  designed to catch — and now actually does.
+
 ### Added — Iter 30 (2026-06-13)
 
 - **e2e validate-per-host sweep** added to
