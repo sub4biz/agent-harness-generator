@@ -18,7 +18,10 @@ Every release publishes these packages **at the same version**:
 | `@ruflo/host-rvm` | RVM adapter (hardware-isolated) |
 | `create-agent-harness` | The scaffolder CLI (also ships `harness` binary) |
 
-Version drift across the 9 packages is detected by `scripts/preflight.mjs`.
+| `@ruflo/vertical-base` | Shared contract for vertical packs |
+| `@ruflo/vertical-trading` | Trading-vertical pack (loadable standalone) |
+
+Version drift across the 11 packages is detected by `scripts/preflight.mjs`.
 
 ## Process
 
@@ -66,9 +69,29 @@ The push of `v*.*.*` triggers `.github/workflows/publish.yml`. The workflow:
 
 1. Builds the matrix (wasm + 5 native targets)
 2. Authenticates to GCP via Workload Identity Federation
-3. Fetches `NPM_TOKEN` from Secret Manager
-4. Runs `scripts/smoke.mjs` on the built artifacts
-5. Publishes all 9 packages with `npm publish --provenance`
+3. Installs the gcloud SDK
+4. Fetches `NPM_TOKEN` from Secret Manager
+5. Runs `scripts/smoke.mjs` on the built artifacts
+6. **Gate 1**: `scripts/validate-gcp-secrets.mjs` — re-verifies the secret
+   is fetchable + `npm whoami` confirms the token is non-revoked, exits
+   non-zero on any drift between local setup and CI reality
+7. **Gate 2**: `scripts/publish-dryrun.mjs` — runs `npm publish --dry-run`
+   on every workspace package, exits non-zero if any package would fail
+   the real publish (broken `files`, missing `bin`, unresolvable
+   workspace ref, etc.)
+8. Publishes all 11 packages with `npm publish --provenance`:
+   - `@ruflo/kernel` (umbrella)
+   - `@ruflo/sdk`
+   - 6 host adapters (`host-claude-code`, `host-codex`, `host-pi-dev`,
+     `host-hermes`, `host-openclaw`, `host-rvm`)
+   - 2 vertical packs (`vertical-base`, `vertical-trading`)
+   - `create-agent-harness`
+
+Both gates must pass before any `npm publish` runs. This is the
+"validation using keys from gcp secrets" requirement — if anything in
+the WIF → Secret Manager → npm token chain has degraded between the
+last successful publish and now, the publish is aborted BEFORE any
+registry I/O.
 
 If your GCP variables aren't set, see [`setup/gcp-secrets.md`](setup/gcp-secrets.md) or run `scripts/setup-gcp.sh`.
 

@@ -4,6 +4,34 @@ All notable changes to this project are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+### Added — Iter 21 (2026-06-13)
+
+- **Wired the publish gates into `.github/workflows/publish.yml`** —
+  iters 18 + 20 built `validate-gcp-secrets.mjs` and `publish-dryrun.mjs`
+  but they weren't actually called by CI. Now both are mandatory gates
+  in the publish job, running after smoke tests but before any
+  `npm publish`:
+  - **Gate 1**: `node scripts/validate-gcp-secrets.mjs` — re-verifies
+    WIF → Secret Manager → `npm whoami` chain on the live runner.
+    If anything has drifted between the last successful publish and
+    now, the publish aborts BEFORE registry I/O.
+  - **Gate 2**: `node scripts/publish-dryrun.mjs` — dry-runs every
+    package's publish, exits non-zero if any package would fail
+    (broken `files`, missing `bin`, unresolvable workspace ref).
+- **Added `setup-gcloud@v2` step** before the gates — the WIF auth
+  action sets ADC but doesn't install the SDK, and Gate 1 shells out
+  to `gcloud secrets describe`.
+- **Per-package publish steps for all 11 workspace packages** (was 2):
+  - `@ruflo/kernel` (umbrella)
+  - `@ruflo/sdk`
+  - 6 host adapters (`host-claude-code`, `host-codex`, `host-pi-dev`,
+    `host-hermes`, `host-openclaw`, `host-rvm`)
+  - 2 vertical packs (`vertical-base`, `vertical-trading`)
+  - `create-agent-harness`
+- **`docs/RELEASE.md` updated** with the two new gates and the 11-package
+  publish list, plus the rationale: this is the "validation using keys
+  from gcp secrets" directive realised as an actual pipeline.
+
 ### Added — Iter 20 (2026-06-13)
 
 - **`harness validate` umbrella command** — single release-readiness

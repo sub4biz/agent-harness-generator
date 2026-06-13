@@ -119,6 +119,10 @@ jobs:
         with:
           workload_identity_provider: ${{ env.GCP_WIF_PROVIDER }}
           service_account: ${{ env.GCP_WIF_SERVICE_ACCOUNT }}
+      - name: Install gcloud SDK
+        # Required by scripts/validate-gcp-secrets.mjs (Gate 1 below).
+        # The auth action sets ADC but doesn't install the CLI itself.
+        uses: google-github-actions/setup-gcloud@v2
       - name: Fetch NPM_TOKEN from GCP Secret Manager
         id: secrets
         uses: google-github-actions/get-secretmanager-secrets@v2
@@ -131,16 +135,62 @@ jobs:
           npm run build
           npm run test
           node scripts/smoke.mjs
+
+      # ─────────────────────────────────────────────────────────────────
+      # PRE-PUBLISH GATES (iter 18 + 20)
+      # ─────────────────────────────────────────────────────────────────
+      - name: Gate 1 — GCP Secret Manager validation
+        env:
+          GCP_PROJECT: ${{ env.GCP_PROJECT_ID }}
+          NPM_SECRET_NAME: NPM_TOKEN
+        run: node scripts/validate-gcp-secrets.mjs
+
+      - name: Gate 2 — npm publish dry-run on every package
+        run: node scripts/publish-dryrun.mjs
+
+      # ─────────────────────────────────────────────────────────────────
+      # ACTUAL PUBLISH — every non-private workspace package
+      # ─────────────────────────────────────────────────────────────────
       - name: Publish @ruflo/kernel-* native packages
         env:
           NODE_AUTH_TOKEN: ${{ steps.secrets.outputs.npm_token }}
         run: |
           echo "TODO: publish per-platform native packages from dist-native/ (lands in a follow-up iteration)"
-      - name: Publish @ruflo/kernel umbrella
+
+      - name: Publish @ruflo/kernel (umbrella)
         env:
           NODE_AUTH_TOKEN: ${{ steps.secrets.outputs.npm_token }}
         working-directory: packages/kernel-js
         run: npm publish --provenance --access public
+
+      - name: Publish @ruflo/sdk
+        env:
+          NODE_AUTH_TOKEN: ${{ steps.secrets.outputs.npm_token }}
+        working-directory: packages/sdk
+        run: npm publish --provenance --access public
+
+      - name: Publish host adapters (6 packages)
+        env:
+          NODE_AUTH_TOKEN: ${{ steps.secrets.outputs.npm_token }}
+        run: |
+          set -euo pipefail
+          for host in host-claude-code host-codex host-pi-dev host-hermes host-openclaw host-rvm; do
+            echo "::group::publish @ruflo/$host"
+            (cd packages/$host && npm publish --provenance --access public)
+            echo "::endgroup::"
+          done
+
+      - name: Publish vertical packs (2 packages)
+        env:
+          NODE_AUTH_TOKEN: ${{ steps.secrets.outputs.npm_token }}
+        run: |
+          set -euo pipefail
+          for v in vertical-base vertical-trading; do
+            echo "::group::publish @ruflo/$v"
+            (cd packages/$v && npm publish --provenance --access public)
+            echo "::endgroup::"
+          done
+
       - name: Publish create-agent-harness
         env:
           NODE_AUTH_TOKEN: ${{ steps.secrets.outputs.npm_token }}
