@@ -4,6 +4,47 @@ All notable changes to this project are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+### Added — Iter 47 (2026-06-13)
+
+- **`harness upgrade [path] [--apply] [--conflict=<inline|rej>]` CLI
+  subcommand** — wires the iter-4 `planUpgrade()` + `applyPlan()` into
+  the `harness` binary as the **9th** user-facing subcommand. Closes
+  the harness lifecycle:
+  ```
+  scaffold (create-agent-harness)
+      ↓
+   edit (user)
+      ↓
+   upgrade (harness upgrade [--apply])     <- this iter
+      ↓
+   sign (harness sign)
+      ↓
+   verify (harness verify)
+      ↓
+   publish (harness publish [--confirm])
+  ```
+- Default mode is **dry-run** — re-renders the template that produced
+  the harness with the same vars, computes a 3-bucket plan (added /
+  removed / changed), and reports per-file disposition (clean / conflict).
+- `--apply` writes the plan. Conflicts are surfaced via:
+  - `--conflict=inline` (default) — Git-style `<<<<<<<` markers in-place
+  - `--conflict=rej` — upstream version written to `<file>.rej` for
+    manual merge tools
+- Exit codes signal CI gating: `0` on clean apply or no drift, `1`
+  on unresolved conflicts (so CI can flag them).
+- **`__tests__/upgrade-cmd.test.ts`** (6 cases):
+  - exits 1 if `<dir>` isn't a generated harness
+  - reports `No drift` on a fresh scaffold (no false positives)
+  - tampered file shows up in the plan in dry-run
+  - `--apply` runs the apply path, exits 0 or 1 based on conflict
+    resolution
+  - unknown `--conflict=` value rejected with exit 2
+  - manifest pointing at a non-existent template fails cleanly
+- Full harness binary surface: **9 subcommands** —
+  sign / verify / doctor / federate / secrets / validate / mcp /
+  publish / upgrade.
+- TS suite: **435/435** (up from 429).
+
 ### Added — Iter 46 (2026-06-13)
 
 - **`harness publish [path] [--confirm]` CLI subcommand** — wires the

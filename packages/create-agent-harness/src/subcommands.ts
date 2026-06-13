@@ -18,6 +18,7 @@ import { secretsDispatch } from './secrets.js';
 import { validate } from './validate.js';
 import { mcpDispatch } from './mcp-cmd.js';
 import { publishCmd } from './publish-cmd.js';
+import { upgradeCmd } from './upgrade-cmd.js';
 
 export type SubcommandResult = { code: number; lines: string[] };
 
@@ -238,6 +239,8 @@ export async function dispatch(subcommand: string, args: string[]): Promise<Subc
       return mcpDispatch(args.slice(0));
     case 'publish':
       return publishCmd(args.slice(0));
+    case 'upgrade':
+      return upgradeCmd(args.slice(0));
     case 'help':
     case undefined:
       return {
@@ -254,6 +257,7 @@ export async function dispatch(subcommand: string, args: string[]): Promise<Subc
           '  validate  — umbrella: doctor + verify + path-guard + mcp + secrets',
           '  mcp       — list MCP servers / dispatch a tool through the claim check',
           '  publish   — pin the harness manifest to IPFS via Pinata (dry-run default)',
+          '  upgrade   — re-render template + drift plan (--apply to apply)',
           '  help      — show this message',
           '',
           'Most subcommands operate on the current directory by default.',
