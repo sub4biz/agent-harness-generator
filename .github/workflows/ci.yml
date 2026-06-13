@@ -137,6 +137,12 @@ jobs:
       - name: Path-handling guard (the /tmp Windows bug regression test)
         shell: bash
         run: node scripts/path-guard.mjs
+      - name: Healthcheck (iter 42 — daily-driver supercheck)
+        # 6 read-only checks <1s: version coherence + plugin shape +
+        # codex skills + workflows refs + path-guard wiring + examples
+        # present. Acts as a fast structural gate per-OS-per-Node.
+        shell: bash
+        run: node scripts/healthcheck.mjs
 
   # ─────────────────────────────────────────────────────────────────────
   # Per-platform npm pack + install smoke for every published package

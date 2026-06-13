@@ -4,6 +4,27 @@ All notable changes to this project are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+### Added — Iter 43 (2026-06-13)
+
+- **Healthcheck wired into `ci.yml`** Node job — runs on every push
+  per (OS, Node-version) combination after `npm test` + path-guard.
+  6 read-only structural checks add ~1s per matrix cell; catches
+  version drift, plugin schema breaks, codex orphan dirs, dead
+  workflow script refs, missing examples — at the same moment
+  vitest does, in the same job.
+- **`docs/ARCHITECTURE.md`** — bird's-eye map of how the pieces compose:
+  - 3-layer model diagram (Kernel → Adapters → User-facing surface)
+  - Release pipeline diagram showing all 6 primitives + the
+    `release.mjs` orchestrator + the server-side `publish.yml` mirror
+  - Validation surface table: which command runs when, wall time,
+    and what it covers (validate vs healthcheck vs preflight vs release)
+  - CI matrix breakdown: 16 jobs across the matrix
+  - Test contract table: maps every concern (claims, witness, MCP,
+    plugin shape, etc.) to its pinning test file + iter number
+- CI milestone confirmation: iter-41 commit `7b9f473` ran to **CI
+  conclusion = SUCCESS** — first run conclusion success after the
+  build-ordered Phase 4 fix.
+
 ### Added — Iter 42 (2026-06-13)
 
 - **`scripts/healthcheck.mjs`** — user-facing daily-driver "is this
