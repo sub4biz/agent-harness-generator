@@ -98,7 +98,8 @@ describe('e2e lifecycle: scaffold → all 12 subcommands', () => {
       expect(pr.lines.join('\n')).toMatch(/DRY-RUN|confirmed: false/);
 
       // 10. federate init — creates .harness/federation.json
-      const fr = await federateDispatch(['init', 'self-id', dir]);
+      // federateDispatch takes cwd as a SECOND positional arg, not in args[].
+      const fr = await federateDispatch(['init', 'self-id'], dir);
       expect(fr.code, `federate:\n${fr.lines.join('\n')}`).toBe(0);
     } finally {
       await rm(dir, { recursive: true, force: true });
