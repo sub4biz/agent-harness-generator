@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Boxes, Github, Sparkles } from 'lucide-react';
+import { Boxes, Github, HelpCircle, Sparkles } from 'lucide-react';
 import { HarnessBuilder } from './components/HarnessBuilder';
 import { ArtifactBuilder } from './components/ArtifactBuilder';
 import { RepoImporter } from './components/RepoImporter';
 import { VerifyPanel } from './components/VerifyPanel';
 import { SegTabs } from './components/ui';
+import { OnboardingModal, clearOnboardingDismissal } from './components/OnboardingModal';
 import type { HarnessConfig } from './generator';
 
 type Mode = 'repo' | 'harness' | 'artifact' | 'verify';
@@ -14,11 +15,20 @@ export default function App() {
   const [seed, setSeed] = useState<HarnessConfig | undefined>(undefined);
   // Bump to force-remount HarnessBuilder when a repo plan seeds a new config.
   const [seedKey, setSeedKey] = useState(0);
+  // iter 106 — onboarding modal state (undefined → modal decides from localStorage)
+  const [forceOnboarding, setForceOnboarding] = useState<boolean | undefined>(undefined);
 
   function useRepoPlan(cfg: HarnessConfig) {
     setSeed(cfg);
     setSeedKey((k) => k + 1);
     setMode('harness');
+  }
+
+  function reopenOnboarding() {
+    // Clear the localStorage flag so future visits see the modal again,
+    // and force-open it for the current session.
+    clearOnboardingDismissal();
+    setForceOnboarding(true);
   }
 
   return (
@@ -31,8 +41,17 @@ export default function App() {
           >
             <Github size={14} /> ruvnet/agent-harness-generator
           </a>
-          <div className="hidden items-center gap-1.5 text-xs text-slate-400 sm:flex">
-            <Sparkles size={14} className="text-brand-glow" /> 100% client-side · nothing leaves your browser
+          <div className="flex items-center gap-2">
+            <button
+              onClick={reopenOnboarding}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-ink-700 bg-ink-800/60 px-3 py-1.5 text-xs text-slate-300 transition hover:border-ink-600 hover:text-white"
+              aria-label="Reopen onboarding tour"
+            >
+              <HelpCircle size={14} /> <span className="hidden sm:inline">Tour</span>
+            </button>
+            <div className="hidden items-center gap-1.5 text-xs text-slate-400 sm:flex">
+              <Sparkles size={14} className="text-brand-glow" /> 100% client-side
+            </div>
           </div>
         </div>
 
@@ -69,6 +88,12 @@ export default function App() {
         {mode === 'artifact' && <ArtifactBuilder />}
         {mode === 'verify' && <VerifyPanel />}
       </main>
+
+      <OnboardingModal
+        forceOpen={forceOnboarding}
+        onClose={() => setForceOnboarding(undefined)}
+      />
+
 
       <footer className="mt-12 border-t border-ink-700/60 pt-6 text-xs text-slate-500">
         <p>

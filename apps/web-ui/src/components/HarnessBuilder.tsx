@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Download, Loader2, Package } from 'lucide-react';
+import { HostGuide } from './HostGuide';
 import {
   AGENTS,
   COMMANDS,
@@ -312,6 +313,8 @@ export function HarnessBuilder({ seed }: { seed?: HarnessConfig }) {
             </div>
           )}
         </Section>
+
+        {nameCheck.valid && <HostGuide hosts={cfg.hosts} />}
       </div>
     </div>
   );
