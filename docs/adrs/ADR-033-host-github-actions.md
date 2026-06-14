@@ -1,6 +1,6 @@
 # ADR-033: GitHub Actions as a Harness Host
 
-**Status**: Proposed
+**Status**: Implemented (iter 146 — `@ruflo/host-github-actions` package shipped; HOSTS-catalog propagation tracked separately)
 **Date**: 2026-06-14
 **Project**: `ruvnet/agent-harness-generator`
 **Related**: ADR-004 (host integration model), ADR-022 (MCP as gated primitive), ADR-030 (Discovery Loop propagation for new hosts), ADR-007 (CI guards)

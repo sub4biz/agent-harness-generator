@@ -1,0 +1,46 @@
+{
+  "name": "@ruflo/host-github-actions",
+  "version": "0.1.0",
+  "description": "GitHub Actions host adapter for agent-harness-generator. Emits .github/workflows/<name>.yml + a composite action.yml for non-interactive CI/CD agent harnesses (ADR-033).",
+  "homepage": "https://github.com/ruvnet/agent-harness-generator",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ruvnet/agent-harness-generator.git",
+    "directory": "packages/host-github-actions"
+  },
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist/**", "README.md", "LICENSE"],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run --passWithNoTests",
+    "lint": "tsc --noEmit"
+  },
+  "keywords": [
+    "agent-harness",
+    "github-actions",
+    "ci-cd",
+    "workflow",
+    "composite-action",
+    "non-interactive",
+    "host-adapter",
+    "ruflo",
+    "ADR-033"
+  ],
+  "publishConfig": { "access": "public" },
+  "dependencies": { "@ruflo/kernel": "0.1.0" },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.0",
+    "vitest": "^2.0.0"
+  },
+  "engines": { "node": ">=20.0.0" }
+}
