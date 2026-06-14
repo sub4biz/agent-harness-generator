@@ -195,9 +195,47 @@ jobs:
           cp ${{ github.workspace }}/scripts/verify-all-hosts.mjs .
           node verify-all-hosts.mjs
 
+  smoke-example-packages:
+    # iter 142 — the 18 @metaharness/* one-command wrappers are live on
+    # npm (iter 140). Each wraps `npx metaharness@latest <name> --template
+    # <X> --host <Y>`. This guard npx-invokes a representative subset from
+    # the LIVE registry on the daily cron + every push, catching the case
+    # where a wrapper's bin breaks OR metaharness changes a flag the
+    # wrapper still passes. A scoped sample (not all 18) keeps CI fast
+    # while covering one host wrapper + one vertical wrapper + the
+    # claude-code wrapper (the most-used path).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+
+      - name: Scaffold from a sample of published @metaharness/* wrappers
+        shell: bash
+        run: |
+          mkdir -p /tmp/ex && cd /tmp/ex
+          fail=0
+          # host wrapper (hermes), vertical wrapper (devops), claude-code wrapper
+          for pkg in hermes devops claude-code; do
+            echo ""
+            echo "=== @metaharness/$pkg ==="
+            rm -rf "$pkg-bot"
+            if npx --yes "@metaharness/$pkg@latest" "$pkg-bot"; then
+              test -f "$pkg-bot/.harness/manifest.json" \
+                && echo "PASS @metaharness/$pkg — manifest present" \
+                || { echo "FAIL @metaharness/$pkg — no manifest"; fail=1; }
+              # iter-132 propagation: the scaffold must carry the plugin manifest
+              test -f "$pkg-bot/.claude-plugin/plugin.json" \
+                && echo "PASS @metaharness/$pkg — .claude-plugin/plugin.json present" \
+                || { echo "FAIL @metaharness/$pkg — no plugin.json"; fail=1; }
+            else
+              echo "FAIL @metaharness/$pkg — npx invocation errored"; fail=1
+            fi
+          done
+          [ "$fail" -eq 0 ] && echo "PASS: all sampled wrappers scaffold" || { echo "FAIL"; exit 1; }
+
   notify-on-fail:
     runs-on: ubuntu-latest
-    needs: [smoke-published-cli, smoke-published-lib, smoke-all-hosts]
+    needs: [smoke-published-cli, smoke-published-lib, smoke-all-hosts, smoke-example-packages]
     if: failure() && github.event_name == 'schedule'
     steps:
       - name: Open issue on scheduled-cron failure
