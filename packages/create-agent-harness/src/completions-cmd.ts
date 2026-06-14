@@ -14,7 +14,12 @@ const SUBCOMMANDS = [
   'sign', 'verify', 'doctor',
   'federate', 'secrets', 'validate',
   'mcp', 'publish', 'upgrade',
-  'completions', 'sbom', 'audit', 'help',
+  'completions', 'sbom', 'audit',
+  // iter 55 PR-#1 additions
+  'mcp-scan', 'analyze-repo',
+  // iter 66 — kernel-version skew diagnostic
+  'diag',
+  'help',
 ] as const;
 
 const SECRETS_SUBSUBS = ['check', 'fetch', 'validate-token', 'help'] as const;
@@ -73,6 +78,11 @@ _harness() {
     'publish:pin the harness manifest to IPFS via Pinata (dry-run default)'
     'upgrade:re-render template + drift plan (--apply to apply)'
     'completions:emit shell completion scripts (bash/zsh/fish)'
+    'sbom:emit SPDX-2.3 SBOM for the harness'
+    'audit:npm audit per-harness with structured output'
+    'mcp-scan:security-scan the harness MCP surface (policy + perms + deps)'
+    'analyze-repo:recommend a harness from a local repo'
+    'diag:kernel-version skew check (ADR-027 diagnostic)'
     'help:show help'
   )
 

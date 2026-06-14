@@ -4,6 +4,35 @@ All notable changes to this project are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+### Fixed — Iter 67 (2026-06-14)
+
+- **Shell completions catch up with the dispatcher** — previously the
+  `bash`, `zsh`, and `fish` completion scripts were missing 5
+  subcommands the dispatcher had been honouring for weeks:
+  - `sbom` + `audit` (iter 51) — slipped past the iter-48 completions
+    when the per-harness security subcommands landed
+  - `mcp-scan` + `analyze-repo` (PR #1 / iter 55) — slipped past when
+    the Studio web-UI tree merged
+  - `diag` (iter 66) — net-new but the same gap class
+- **Implementation**:
+  - `completions-cmd.ts` `SUBCOMMANDS` array now includes all 15
+    dispatcher-honoured names (bash + fish auto-pickup from this list)
+  - `zshCompletion()` had its OWN hardcoded subcommand list (the
+    zsh `_describe` format wants `'name:description'` tuples) — 5
+    new entries added with one-line descriptions
+- **`__tests__/cli-flags-completions.test.ts`** updated:
+  - the `harness help` assertion lists all 15 subcommands (was 10)
+  - the all-three-shells completion assertion lists 14 (was 9)
+  - guards against another silent regression
+- TS suite: **549/549** locally; the test grew teeth without growing
+  the test count.
+- Why this matters: tab-completion drift is the worst kind — users
+  silently stop discovering subcommands, support tickets disguise
+  themselves as "how do I see what's available?" questions, and the
+  fix is invisibly mechanical. The iter-67 completion guard now
+  fails LOUDLY when the next subcommand lands without updating both
+  paths.
+
 ### Added — Iter 66 (2026-06-14)
 
 - **`harness diag` — 15th subcommand, the ADR-027 diagnostic UX loop**.

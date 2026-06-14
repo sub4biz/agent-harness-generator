@@ -28,10 +28,18 @@ describe('CLI conventional flags', () => {
     expect(r.lines.join('\n')).toMatch(/harness \d+\.\d+\.\d+/);
   });
 
-  it('help text lists all 11 subcommands (incl. completions + flags)', async () => {
+  it('help text lists all 15 subcommands (incl. completions + flags)', async () => {
     const r = await dispatch('help', []);
     const txt = r.lines.join('\n');
-    for (const cmd of ['sign', 'verify', 'doctor', 'federate', 'secrets', 'validate', 'mcp', 'publish', 'upgrade', 'completions']) {
+    // iter 67: refreshed list — was 10 (sign through completions), now 15.
+    // sbom + audit (iter 51), mcp-scan + analyze-repo (PR #1 / iter 55),
+    // diag (iter 66). Every subcommand the dispatcher honours MUST be
+    // visible in `harness help`, or users can't find it.
+    for (const cmd of [
+      'sign', 'verify', 'doctor', 'federate', 'secrets', 'validate',
+      'mcp', 'publish', 'upgrade', 'completions', 'sbom', 'audit',
+      'mcp-scan', 'analyze-repo', 'diag',
+    ]) {
       expect(txt, `help missing ${cmd}`).toContain(cmd);
     }
     expect(txt).toMatch(/--help, -h/);
@@ -76,7 +84,14 @@ describe('harness completions', () => {
   });
 
   it('all three shells list every harness subcommand in their completion', async () => {
-    const subs = ['sign', 'verify', 'doctor', 'federate', 'secrets', 'validate', 'mcp', 'publish', 'upgrade'];
+    // iter 67: list every subcommand the dispatcher honours so missing
+    // entries in the SUBCOMMANDS list fail loudly. New since iter 48:
+    // sbom, audit, mcp-scan, analyze-repo, diag.
+    const subs = [
+      'sign', 'verify', 'doctor', 'federate', 'secrets', 'validate',
+      'mcp', 'publish', 'upgrade', 'sbom', 'audit',
+      'mcp-scan', 'analyze-repo', 'diag',
+    ];
     for (const shell of ['bash', 'zsh', 'fish']) {
       const r = await dispatch('completions', [shell]);
       const out = r.lines.join('\n');
