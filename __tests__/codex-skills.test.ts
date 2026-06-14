@@ -18,6 +18,7 @@ interface ParsedSkill {
   description?: string;
   dispatchType?: string;
   dispatchServer?: string;
+  dispatchCommand?: string;
   commandName?: string;
   args: Array<{ name: string; prompt?: string; required?: boolean }>;
   tags: string[];
@@ -57,6 +58,7 @@ function parseSkillToml(raw: string): ParsedSkill {
     } else if (section === 'dispatch') {
       if (key === 'type') out.dispatchType = val;
       if (key === 'server') out.dispatchServer = val;
+      if (key === 'command') out.dispatchCommand = val;
     } else if (section === 'command') {
       if (key === 'name') out.commandName = val;
     } else if (section === 'args' && currentArg) {
@@ -105,8 +107,16 @@ describe('.codex/skills/*/skill.toml manifests', () => {
       expect(skill.name, `${e}: missing [skill].name`).toBeTruthy();
       expect(skill.version, `${e}: missing [skill].version`).toBeTruthy();
       expect(skill.description, `${e}: missing [skill].description`).toBeTruthy();
-      expect(skill.dispatchType, `${e}: missing [dispatch].type`).toBe('mcp_tool');
-      expect(skill.dispatchServer, `${e}: missing [dispatch].server`).toBeTruthy();
+      // iter 142: two dispatch shapes are valid —
+      //   mcp_tool → needs a [dispatch].server (wraps the MCP server)
+      //   shell    → needs a [dispatch].command (runs a published npx wrapper,
+      //              e.g. example-harness → `npx @metaharness/<pkg>`)
+      expect(['mcp_tool', 'shell'], `${e}: [dispatch].type must be mcp_tool or shell`).toContain(skill.dispatchType);
+      if (skill.dispatchType === 'mcp_tool') {
+        expect(skill.dispatchServer, `${e}: mcp_tool dispatch missing [dispatch].server`).toBeTruthy();
+      } else {
+        expect(skill.dispatchCommand, `${e}: shell dispatch missing [dispatch].command`).toBeTruthy();
+      }
       expect(skill.commandName, `${e}: missing [command].name`).toBeTruthy();
       // Skill name must equal directory name + command name
       expect(skill.name, `${e}: dir name must match [skill].name`).toBe(e);
