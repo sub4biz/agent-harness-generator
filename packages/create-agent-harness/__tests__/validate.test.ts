@@ -31,6 +31,24 @@ async function makeHarnessDir(): Promise<string> {
 }
 
 describe('harness validate', () => {
+  // iter 76 — diag is the new 6th check.
+  it('chains diag as the 6th informational check (iter 76)', async () => {
+    const dir = await makeHarnessDir();
+    try {
+      const r = await validate([dir, '--skip-gcp']);
+      // diag is informational — surface SKIP / PASS / WARN but never
+      // FAIL the umbrella. On a hand-rolled manifest with no meta block,
+      // diag should SKIP (no kernel_version recorded).
+      const txt = r.lines.join('\n');
+      expect(txt).toMatch(/SKIP\s+diag\s+—\s+manifest pre-iter-58/);
+      // Umbrella verdict unchanged — HEALTHY despite diag SKIP
+      expect(txt).toMatch(/Result: HEALTHY/);
+      expect(r.code).toBe(0);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
   it('runs all 5 checks and returns HEALTHY on a clean harness', async () => {
     const dir = await makeHarnessDir();
     try {

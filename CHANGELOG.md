@@ -4,6 +4,39 @@ All notable changes to this project are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+### Added — Iter 76 (2026-06-14)
+
+- **`harness validate` umbrella now chains `diag` as a 6th
+  informational check** — closes the "iter 66 diag exists but
+  release-prep doesn't surface kernel state" gap. The umbrella verdict
+  (HEALTHY / FAILED) is **unchanged** for any kernel-skew scenario —
+  kernel skew is a deploy-side runtime issue, not a release-readiness
+  block.
+- **`CheckResult.tag` optional override** — lets a check return code 0
+  (don't block the umbrella) while displaying `PASS` / `WARN` / `SKIP`
+  in the per-line output. Default code-based mapping unchanged.
+- **`runDiag()` returns three states**:
+  - `SKIP` — no `.harness/manifest.json`, or manifest is pre-iter-58
+    (no `kernel_version`), or `@ruflo/kernel` not installed locally
+  - `PASS` — `match` or `patch-diff` between manifest + local kernel
+  - `WARN` — `minor-diff` / `major-diff` / `unparseable`
+- **Live smoke output** on a fresh scaffold:
+  ```
+  PASS doctor     — ...
+  PASS verify     — no witness — skipped (sign first)
+  PASS path-guard — no hardcoded /tmp, C:\, /Users, /home in TS/JS/Rust
+  PASS mcp        — no .mcp/servers.json — skipped
+  PASS secrets    — skipped (--skip-gcp)
+  PASS diag       — kernel manifest=0.1.0 local=0.1.0 (match)
+
+  Result: HEALTHY (release-ready)
+  ```
+- **`packages/create-agent-harness/__tests__/validate.test.ts`**
+  7 → 8 cases — pins `SKIP diag — manifest pre-iter-58` on a
+  hand-rolled manifest with no meta block, AND that the umbrella
+  verdict stays HEALTHY despite the SKIP.
+- TS suite: **565/565** (was 563).
+
 ### Changed — Iter 75 (2026-06-14)
 
 - **README day-to-day commands table refreshed** — was frozen at iter 62.

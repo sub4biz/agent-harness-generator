@@ -9,6 +9,10 @@
 //   3. path-guard      no hardcoded /tmp/, C:\, /Users/, /home/ in production
 //   4. mcp-server      every entry in .mcp/servers.json passes kernel schema
 //   5. secrets         (optional) gcloud + project + secret exist (--skip-gcp to skip)
+//   6. diag            kernel-version skew check (iter 76 — informational,
+//                      WARN on skew, never fails the umbrella because kernel
+//                      skew is a deploy-side issue, not a release-readiness
+//                      block for the harness being validated)
 //
 // Exits non-zero if any check fails. Structured output suits both human eyes
 // and `grep PASS|FAIL` for CI.
@@ -18,6 +22,7 @@ import { readFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { doctor, verify } from './subcommands.js';
 import { check as secretsCheck } from './secrets.js';
+import { buildDiagReport } from './diag.js';
 
 export type SubcommandResult = { code: number; lines: string[] };
 
@@ -25,6 +30,10 @@ interface CheckResult {
   name: string;
   code: number;
   detail: string;
+  // iter 76: optional override for the displayed tag. Lets a check
+  // return code 0 (don't fail the umbrella) but surface WARN / SKIP in
+  // the output. Used by diag to surface kernel skew informationally.
+  tag?: 'PASS' | 'FAIL' | 'WARN' | 'SKIP';
 }
 
 async function runDoctor(dir: string): Promise<CheckResult> {
@@ -116,6 +125,38 @@ async function runMcpCheck(dir: string): Promise<CheckResult> {
   }
 }
 
+/**
+ * iter 76: diag check inside the validate umbrella. Returns code 0
+ * always so a kernel skew never blocks the umbrella verdict; surfaces
+ * the state via the tag override field (PASS / WARN / SKIP).
+ */
+async function runDiag(dir: string): Promise<CheckResult> {
+  if (!existsSync(join(dir, '.harness', 'manifest.json'))) {
+    return { name: 'diag', code: 0, tag: 'SKIP', detail: 'no manifest at path' };
+  }
+  const r = await buildDiagReport(dir);
+  if (!r.manifestKernelVersion) {
+    return { name: 'diag', code: 0, tag: 'SKIP', detail: 'manifest pre-iter-58 (no kernel_version)' };
+  }
+  if (!r.localKernelVersion) {
+    return {
+      name: 'diag', code: 0, tag: 'SKIP',
+      detail: `@ruflo/kernel not installed locally (manifest pins ${r.manifestKernelVersion})`,
+    };
+  }
+  if (r.verdict === 'match' || r.verdict === 'patch-diff') {
+    return {
+      name: 'diag', code: 0, tag: 'PASS',
+      detail: `kernel manifest=${r.manifestKernelVersion} local=${r.localKernelVersion} (${r.verdict})`,
+    };
+  }
+  // minor-diff / major-diff / unparseable → WARN but DON'T fail
+  return {
+    name: 'diag', code: 0, tag: 'WARN',
+    detail: `kernel manifest=${r.manifestKernelVersion} local=${r.localKernelVersion} (${r.verdict})`,
+  };
+}
+
 /** Top-level dispatcher: `harness validate [path] [--skip-gcp] [--secret=NAME]`. */
 export async function validate(args: string[]): Promise<SubcommandResult> {
   const dir = resolve(args.find(a => !a.startsWith('--')) ?? process.cwd());
@@ -141,10 +182,17 @@ export async function validate(args: string[]): Promise<SubcommandResult> {
     results.push({ name: 'secrets', code: 0, detail: 'skipped (--skip-gcp)' });
   }
 
+  // iter 76: diag (kernel-version skew) as informational signal.
+  // Never fails the umbrella — kernel skew is a deploy-side runtime
+  // issue, not a release-readiness block for the harness being
+  // validated. PASS on match/patch, WARN on minor/major, SKIP when
+  // no kernel installed locally.
+  results.push(await runDiag(dir));
+
   let problems = 0;
   for (const r of results) {
-    const tag = r.code === 0 ? 'PASS' : 'FAIL';
-    lines.push(`  ${tag} ${r.name.padEnd(10)} — ${r.detail}`);
+    const tag = r.tag ?? (r.code === 0 ? 'PASS' : 'FAIL');
+    lines.push(`  ${tag.padEnd(4)} ${r.name.padEnd(10)} — ${r.detail}`);
     if (r.code !== 0) problems++;
   }
   lines.push('');
