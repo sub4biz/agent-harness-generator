@@ -4,6 +4,35 @@ All notable changes to this project are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+### Changed — Iter 93 (2026-06-14)
+
+- **`harness doctor` failure message now recommends
+  `harness diag --bundle`**. Closes the discovery loop opened by
+  iter 90: when doctor finds problems, the most common user next
+  action is "what do I report?" — iter 93 points them straight at
+  the iter-90 bundle.
+- **New "Next:" block** on FAIL only (HEALTHY output unchanged):
+  ```
+  Result: N issues (/path/to/harness)
+
+  Next: capture the full diagnostic state for a support ticket:
+    harness diag /path/to/harness --bundle > bundle.json
+  (then attach bundle.json to a GitHub issue at
+   https://github.com/ruvnet/agent-harness-generator/issues — the
+   bundle is sanitised; secret_/token_/key_/password_ fields are redacted)
+  ```
+- **Sanitisation reassurance is load-bearing** — users hitting their
+  first doctor failure need to know the bundle is safe to paste into
+  a public issue before they'll do it. The redaction callout is the
+  contract that makes the suggestion actionable.
+- **`__tests__/doctor-fail-message.test.ts`** — 2 new cases:
+  - on FAIL, the message includes the diag --bundle suggestion + URL +
+    redaction callout
+  - the bundle command uses the user-passed path (not cwd)
+- **HEALTHY output unchanged** — no "Next:" suggestion noise on
+  successful doctor runs. The suggestion is contextual to failure.
+- TS suite: **589/589** (was 587).
+
 ### Added — Iter 92 (2026-06-14)
 
 - **ADR-029 — Cross-Language Invariants and Defense-in-Depth Catalog

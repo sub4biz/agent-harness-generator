@@ -156,6 +156,18 @@ export async function doctor(args: string[]): Promise<SubcommandResult> {
     return { code: 0, lines };
   }
   pushLines(lines, '', `Result: ${problems} issue${problems === 1 ? '' : 's'} (${dir})`);
+  // iter 93: close the discovery loop. When doctor finds problems the
+  // most common next user action is "what do I report?" — point them
+  // at iter-90's bundle so they can paste a single JSON into a
+  // GitHub issue. The iter-90 bundle is sanitised by default (no
+  // credentials leak) so this suggestion is safe.
+  pushLines(lines, '',
+    `Next: capture the full diagnostic state for a support ticket:`,
+    `  harness diag ${dir} --bundle > bundle.json`,
+    `(then attach bundle.json to a GitHub issue at`,
+    ` https://github.com/ruvnet/agent-harness-generator/issues — the`,
+    ` bundle is sanitised; secret_/token_/key_/password_ fields are redacted)`,
+  );
   return { code: 1, lines };
 }
 
