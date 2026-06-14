@@ -80,6 +80,34 @@ function resolveLocalKernelVersion(harnessDir: string): string | undefined {
   }
 }
 
+/**
+ * iter 71: resolve the version of create-agent-harness this process is
+ * running from. Used to compare against `manifest.generator`. Falls
+ * through the same 3-path lookup as the kernel resolver: workspace
+ * checkout, installed sibling, top-level node_modules.
+ */
+function resolveLocalGeneratorVersion(): string | undefined {
+  const candidates = [
+    // Workspace: packages/create-agent-harness/dist/ → ../package.json
+    resolve(__dirname, '..', 'package.json'),
+    // Installed: node_modules/create-agent-harness/package.json
+    resolve(__dirname, '..', '..', 'create-agent-harness', 'package.json'),
+  ];
+  for (const p of candidates) {
+    try {
+      if (existsSync(p)) {
+        const pkg = JSON.parse(readFileSync(p, 'utf-8')) as { name?: string; version?: string };
+        if (pkg.name === 'create-agent-harness' && typeof pkg.version === 'string') {
+          return pkg.version;
+        }
+      }
+    } catch {
+      /* try next */
+    }
+  }
+  return undefined;
+}
+
 export interface DiagReport {
   dir: string;
   surface: string | undefined;
@@ -87,23 +115,39 @@ export interface DiagReport {
   localKernelVersion: string | undefined;
   verdict: SkewVerdict;
   actionable: string | undefined;
+  // iter 71: also surface generator-version skew. The manifest's
+  // `generator` field records the create-agent-harness version at
+  // scaffold time. If the user installed a newer create-agent-harness
+  // since, `harness upgrade` may produce different output than they'd
+  // expect — that's exactly the kind of cross-machine surprise diag is
+  // designed to surface.
+  manifestGeneratorVersion: string | undefined;
+  localGeneratorVersion: string | undefined;
+  generatorVerdict: SkewVerdict;
 }
 
 export async function buildDiagReport(harnessDir: string): Promise<DiagReport> {
   const manifestPath = join(harnessDir, '.harness', 'manifest.json');
   let surface: string | undefined;
   let manifestKernelVersion: string | undefined;
+  let manifestGeneratorVersion: string | undefined;
   if (existsSync(manifestPath)) {
     try {
       const m = JSON.parse(await readFile(manifestPath, 'utf-8'));
       surface = m.meta?.surface;
       manifestKernelVersion = m.meta?.kernel_version;
+      // iter 71: manifest.generator is the top-level field stamped by
+      // emptyManifest() — predates the meta block, present in every
+      // scaffold from iter 4 onward.
+      manifestGeneratorVersion = typeof m.generator === 'string' ? m.generator : undefined;
     } catch {
       /* leave both undefined */
     }
   }
   const localKernelVersion = resolveLocalKernelVersion(harnessDir);
   const verdict = skewVerdict(manifestKernelVersion, localKernelVersion);
+  const localGeneratorVersion = resolveLocalGeneratorVersion();
+  const generatorVerdict = skewVerdict(manifestGeneratorVersion, localGeneratorVersion);
   let actionable: string | undefined;
   if (verdict === 'major-diff') {
     actionable = `Run: npm install @ruflo/kernel@${manifestKernelVersion} (major skew — APIs may break)`;
@@ -121,6 +165,9 @@ export async function buildDiagReport(harnessDir: string): Promise<DiagReport> {
     localKernelVersion,
     verdict,
     actionable,
+    manifestGeneratorVersion,
+    localGeneratorVersion,
+    generatorVerdict,
   };
 }
 
@@ -141,6 +188,8 @@ export function formatDiagReport(report: DiagReport): SubcommandResult {
   lines.push(`  surface:              ${report.surface ?? '(unknown — pre-iter-56 manifest)'}`);
   lines.push(`  manifest kernel:      ${report.manifestKernelVersion ?? '(unset — pre-iter-58 manifest)'}`);
   lines.push(`  installed kernel:     ${report.localKernelVersion ?? '(not installed)'}`);
+  lines.push(`  manifest generator:   ${report.manifestGeneratorVersion ?? '(unset)'}`);
+  lines.push(`  installed generator:  ${report.localGeneratorVersion ?? '(not installed)'}`);
   lines.push('');
   const tag: Record<SkewVerdict, string> = {
     'match':         'PASS',
@@ -157,6 +206,26 @@ export function formatDiagReport(report: DiagReport): SubcommandResult {
     'unparseable':   'could not parse one or both kernel versions',
   };
   lines.push(`  ${tag[report.verdict]} ${blurb[report.verdict]}`);
+  // iter 71: generator-skew is informational — never fails. The
+  // generator can change without the harness becoming incompatible
+  // (templates evolve, but the *generated* harness is self-contained).
+  // Surfacing it just lets `harness upgrade` users predict whether
+  // they'll see new template files after re-run.
+  const genBlurb: Record<SkewVerdict, string> = {
+    'match':         'generator versions match exactly',
+    'patch-diff':    'patch-level generator skew (template fixes since this scaffold)',
+    'minor-diff':    'minor-level generator skew (new template features available)',
+    'major-diff':    'MAJOR generator skew (template may have moved — re-run `harness upgrade` to preview drift)',
+    'unparseable':   'generator version unknown',
+  };
+  const genTag: Record<SkewVerdict, string> = {
+    'match':         'PASS',
+    'patch-diff':    'INFO',
+    'minor-diff':    'INFO',
+    'major-diff':    'WARN',
+    'unparseable':   'INFO',
+  };
+  lines.push(`  ${genTag[report.generatorVerdict]} ${genBlurb[report.generatorVerdict]}`);
   if (report.actionable) {
     lines.push('');
     lines.push(`  → ${report.actionable}`);
@@ -166,6 +235,7 @@ export function formatDiagReport(report: DiagReport): SubcommandResult {
   //   0 — patch-diff (informational)
   //   1 — minor-diff or major-diff (action needed)
   //   1 — unparseable when manifest version is set but local isn't
+  // generatorVerdict NEVER fails — it's informational only.
   let code = 0;
   if (report.verdict === 'minor-diff' || report.verdict === 'major-diff') code = 1;
   if (report.verdict === 'unparseable' && report.manifestKernelVersion && !report.localKernelVersion) code = 1;

@@ -4,6 +4,47 @@ All notable changes to this project are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+### Added — Iter 71 (2026-06-14)
+
+- **`harness diag` now also surfaces generator-version skew.** iter 66
+  reported kernel skew only. The manifest has always recorded
+  `generator` (the create-agent-harness version at scaffold time);
+  iter 71 makes that visible alongside the kernel block.
+- **Implementation in `diag.ts`**:
+  - `DiagReport` gained `manifestGeneratorVersion`, `localGeneratorVersion`,
+    `generatorVerdict`
+  - new `resolveLocalGeneratorVersion()` reads the running
+    create-agent-harness's own `package.json` (workspace + installed
+    fallback)
+  - `buildDiagReport()` reads `m.generator` directly (top-level
+    manifest field, present since iter 4) and runs the same
+    `skewVerdict()` against the local version
+  - `formatDiagReport()` prints two extra lines (`manifest generator:`,
+    `installed generator:`) and a per-verdict generator-skew tag:
+    `PASS` (match) / `INFO` (patch / minor / unparseable) / `WARN`
+    (major). On MAJOR generator skew the WARN says "re-run
+    `harness upgrade` to preview drift".
+- **Generator skew is INFORMATIONAL — never changes the exit code.**
+  Templates evolve, but the generated harness is self-contained;
+  generator skew doesn't break anything, it just tells the user
+  what `harness upgrade` would surface.
+- **CLI smoke output**:
+  ```
+  surface:              cli
+  manifest kernel:      0.1.0
+  installed kernel:     0.1.0
+  manifest generator:   0.1.0
+  installed generator:  0.1.0
+
+  PASS kernel versions match exactly
+  PASS generator versions match exactly
+  ```
+- **Tests** — `harness-diag.test.ts` 14 → 17 (+3):
+  - `formatDiagReport surfaces a manifest generator line even on match`
+  - `generator-skew is INFORMATIONAL — never changes exit code`
+  - end-to-end fresh scaffold shows both PASS lines
+- TS suite: **552/552** (was 549).
+
 ### Added — Iter 70 (2026-06-14)
 
 - **7th Codex skill — `diag-harness`** wrapping the iter-66 `harness

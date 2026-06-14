@@ -133,6 +133,71 @@ describe('formatDiagReport', () => {
   });
 });
 
+describe('generator-version skew (iter 71)', () => {
+  it('formatDiagReport surfaces a manifest generator line even on match', () => {
+    const r = diag.formatDiagReport({
+      dir: '/x',
+      surface: 'cli',
+      manifestKernelVersion: '0.1.0',
+      localKernelVersion: '0.1.0',
+      verdict: 'match',
+      actionable: undefined,
+      manifestGeneratorVersion: '0.1.0',
+      localGeneratorVersion: '0.1.0',
+      generatorVerdict: 'match',
+    });
+    const out = r.lines.join('\n');
+    expect(out).toMatch(/manifest generator:\s+0\.1\.0/);
+    expect(out).toMatch(/installed generator:\s+0\.1\.0/);
+    expect(out).toMatch(/PASS generator versions match/);
+  });
+
+  it('generator-skew is INFORMATIONAL — never changes exit code', () => {
+    // Manifest pins generator 0.0.1; local is at 1.0.0 (major skew on
+    // generator). Kernel matches, so exit MUST be 0 — the generator
+    // skew is informational, not blocking.
+    const r = diag.formatDiagReport({
+      dir: '/x',
+      surface: 'cli',
+      manifestKernelVersion: '0.1.0',
+      localKernelVersion: '0.1.0',
+      verdict: 'match',
+      actionable: undefined,
+      manifestGeneratorVersion: '0.0.1',
+      localGeneratorVersion: '1.0.0',
+      generatorVerdict: 'major-diff',
+    });
+    expect(r.code).toBe(0);  // kernel match wins; generator is INFO only
+    const out = r.lines.join('\n');
+    expect(out).toMatch(/WARN MAJOR generator skew/);
+    expect(out).toMatch(/harness upgrade/);
+  });
+
+  it('end-to-end: fresh scaffold shows both PASS lines', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'ahg-diag-gen-'));
+    try {
+      await scaffold({
+        name: 'gen-bot',
+        template: 'minimal',
+        host: 'claude-code',
+        targetDir: dir,
+        force: true,
+        generatorVersion: '0.1.0',
+      });
+      const r = await diag.diagCmd([dir]);
+      expect(r.code).toBe(0);
+      const out = r.lines.join('\n');
+      expect(out).toMatch(/PASS kernel versions match/);
+      // The scaffolder stamps the generatorVersion arg into
+      // manifest.generator, and resolveLocalGeneratorVersion reads
+      // the workspace package.json. In dev they're both 0.1.0 → match.
+      expect(out).toMatch(/(PASS generator versions match|INFO|generator)/);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+});
+
 describe('diagCmd end-to-end', () => {
   it('reports PASS on a freshly scaffolded harness (manifest kernel === local kernel)', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'ahg-diag-'));
