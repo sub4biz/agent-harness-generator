@@ -115,7 +115,7 @@ export function formatCatalog(entries: CatalogEntry[]): string[] {
     const counts = `${e.agentCount}a/${e.skillCount}s/${e.commandCount}c`;
     lines.push(`    ${e.id.padEnd(22)} ${counts.padEnd(10)} ${e.quickStart}`);
   }
-  lines.push('', `Scaffold with: agentmint <name> --template <id>`);
+  lines.push('', `Scaffold with: mintagent <name> --template <id>`);
   return lines;
 }
 
@@ -283,7 +283,7 @@ export async function main(argv: string[]): Promise<number> {
     // arg-driven scaffold is what CI should use).
     if (!process.stdin.isTTY) {
       console.error('--wizard requires an interactive TTY. Use the arg-driven form in CI:');
-      console.error('  npx agentmint <name> --template <id> --host <id>');
+      console.error('  npx mintagent <name> --template <id> --host <id>');
       return 2;
     }
     const { runWizard, makeReadlineAsker, answersToInvocation } = await import('./wizard.js');
@@ -324,10 +324,10 @@ export async function main(argv: string[]): Promise<number> {
   }
 
   if (!args.name) {
-    console.log('Usage: npx agentmint <name> [--template <id>] [--host claude-code|codex|pi-dev|hermes] [--description "..."] [--force]');
-    console.log('       npx agentmint --from-existing [./path]');
-    console.log('       npx agentmint --wizard          (iter 100 — interactive picker)');
-    console.log('       npx agentmint --list            (browse all templates)');
+    console.log('Usage: npx mintagent <name> [--template <id>] [--host claude-code|codex|pi-dev|hermes] [--description "..."] [--force]');
+    console.log('       npx mintagent --from-existing [./path]');
+    console.log('       npx mintagent --wizard          (iter 100 — interactive picker)');
+    console.log('       npx mintagent --list            (browse all templates)');
     console.log('');
     console.log(`Templates: ${TEMPLATES.join(', ')}`);
     console.log(`Hosts: ${HOSTS.join(', ')}`);

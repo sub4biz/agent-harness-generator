@@ -1,5 +1,5 @@
 {
-  "name": "agentmint",
+  "name": "mintagent",
   "version": "0.1.0",
   "description": "Paste any GitHub repo → get a custom AI agent harness. Browser Studio + npx CLI. Runs on Claude Code, Codex, pi.dev, Hermes, OpenClaw, RVM.",
   "homepage": "https://github.com/ruvnet/agent-harness-generator",
@@ -12,7 +12,7 @@
   "author": "rUv <ruv@ruv.net>",
   "type": "module",
   "bin": {
-    "agentmint": "./dist/bin.js",
+    "mintagent": "./dist/bin.js",
     "harness": "./dist/harness-bin.js"
   },
   "files": [
@@ -28,7 +28,7 @@
     "gen:templates": "node scripts/gen-templates.mjs"
   },
   "keywords": [
-    "agentmint",
+    "mintagent",
     "agent-harness",
     "agent-harness-generator",
     "scaffold",

@@ -44,14 +44,14 @@ Output is an npm-publishable `.zip` with **your name on it, your branding, your 
 open https://ruvnet.github.io/agent-harness-generator/
 
 # Or in the terminal — same scaffold, byte-identical
-npx agentmint my-bot --template vertical:coding --host claude-code
+npx mintagent my-bot --template vertical:coding --host claude-code
 cd my-bot && npx . --help
 ```
 
 **Don't know what to pick?** Run the wizard:
 
 ```bash
-npx agentmint --wizard
+npx mintagent --wizard
 ```
 
 **Already have a repo you want a harness for?**
@@ -98,8 +98,8 @@ MCP is included as a first-class **adapter surface, not the identity**. It is ga
 ## Verticals (19 quick-start templates)
 
 ```bash
-npx agentmint --list
-npx agentmint my-bot --template vertical:coding
+npx mintagent --list
+npx mintagent my-bot --template vertical:coding
 ```
 
 | Category | Templates |
