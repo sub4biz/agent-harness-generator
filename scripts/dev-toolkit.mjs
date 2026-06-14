@@ -54,6 +54,9 @@ const HARNESS_SUBCOMMANDS = [
   { name: 'diag', summary: 'Kernel-version skew check (ADR-027) — --json for CI, --bundle for support tickets (iter 90)', iter: 66 },
   { name: 'export-config', summary: 'Emit MCP + claims + permissions as single JSON for sharing/auditing (sanitised — iter 97)', iter: 97 },
   { name: 'compare', summary: 'Diff two harnesses: manifest meta + host list + per-file fingerprints (--bundle for JSON; iter 105)', iter: 105 },
+  { name: 'genome', summary: '7-section readiness scorecard for a LOCAL repo (iter 110) — the strongest pre-scaffold check', iter: 110 },
+  { name: 'score', summary: '5-dimension 0–100 harness scorecard with README-ready badges (iter 111) — target A grade ≥85', iter: 111 },
+  { name: 'threat-model', summary: 'MCP threat-model artifact for PR / compliance review (iter 112) — "enterprise gold"', iter: 112 },
 ];
 
 async function listScripts() {

@@ -107,7 +107,7 @@ npx mintagent my-bot --template vertical:coding
 | Category | Templates |
 |---|---|
 | Starter / Operations | `minimal`, `vertical:devops` |
-| Engineering | `vertical:coding`, `vertical:ai` |
+| Engineering | `vertical:coding`, `vertical:ai`, **`vertical:repo-maintainer`** (iter 113) |
 | Knowledge | `vertical:research`, `vertical:ruview`, `vertical:education` |
 | Finance / Pro | `vertical:trading`, `vertical:legal`, `vertical:health` |
 | Customer / Growth | `vertical:support`, `vertical:crm`, `vertical:marketing`, `vertical:advertising`, `vertical:sales` |

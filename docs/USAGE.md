@@ -277,6 +277,9 @@ Honesty caveat from the underlying `@ruvector/emergent-time` package: the SDK is
 | File a useful support ticket | `harness diag --bundle` (iter 90) |
 | Share MCP/Bash/claims config for an audit | `harness export-config` (iter 97) |
 | Diff two harnesses (e.g. yours vs an upstream baseline) | `harness compare a/ b/` (iter 105) |
+| Pre-scaffold: is this REPO ready for an agent? | `harness genome <repo>` (iter 110) |
+| Score the harness 0–100 with badges (grade A/B/C/F) | `harness score <path>` (iter 111) |
+| MCP threat-model artifact for a PR / compliance review | `harness threat-model <path>` (iter 112) |
 | Drift-detect against the latest template | `harness upgrade` (iter 47) |
 | Sign a release manifest | `harness sign` (iter 8) |
 | Verify the witness signature | `harness verify` (iter 8) |
@@ -290,7 +293,47 @@ Honesty caveat from the underlying `@ruvector/emergent-time` package: the SDK is
 | GCP Secret Manager helpers | `harness secrets` (iter 18) |
 | Emit shell completion (bash/zsh/fish) | `harness completions` (iter 48) |
 
-17 subcommands total as of iter 105. Every subcommand respects `--help` / `-h`.
+20 subcommands total as of iter 112. Every subcommand respects `--help` / `-h`.
+
+### `harness genome <repo>` — pre-scaffold readiness
+
+The "is this REPO ready for an agent harness?" question. 7-section report
+(repo profile · agent topology · MCP risk model · test confidence · release
+readiness · recommended plan · scorecard) computed deterministically from a
+LOCAL repo path — never executes repo code. Modes: text (default) · `--json`
+(6-field scorecard: `repo_type`, `agent_topology`, `risk_score`,
+`mcp_surface`, `test_confidence`, `publish_readiness`) · `--bundle` (ADR-031
+schema-1 envelope) · `--out <file>`. Verdict + exit: `ready` (0) when
+publish_readiness ≥ 0.75 && risk < 0.35 · `needs-work` (1) · `blocked` (2)
+when risk ≥ 0.7.
+
+### `harness score <path>` — post-scaffold harness scorecard
+
+A 0-100 score across 5 dimensions, with the 6-field badge block ready to
+drop into the generated harness README:
+
+| Dimension | Weight | Reads |
+|---|---|---|
+| Repo understanding | 25% | `.harness/manifest.json` (surface + kernel + host) |
+| Agent usefulness | 25% | `src/agents/*` + `.claude/skills/*` + commands counts |
+| MCP safety | 20% | `.harness/mcp-policy.json` (default-deny + audit + perms) |
+| Test coverage | 15% | `__tests__/` + `npm test` + `.github/workflows/` |
+| Publish readiness | 15% | `witness.json` + `sbom.json` + `package.json#bin` |
+
+Grade: A (≥85, exit 0) · B (≥70, exit 0) · C (≥50, exit 1, needs work) ·
+F (exit 2, blocked). The user roadmap target: A without manual edits.
+
+### `harness threat-model <path>` — MCP threat-model artifact ("enterprise gold")
+
+Renders the existing `mcp-scan` findings as a clean PR / compliance review
+artifact — allowed/denied tools count, dangerous permissions count, secrets
+reachability, network/shell/file-write grants, default-deny posture, audit
+log status. Same envelope shape across `--json` / `--bundle` modes per
+ADR-031.
+
+Verdict + exit: `clean` (0) — no dangerous perms · `medium` (1) — network OR
+file-write granted, OR no audit log · `high` (2) — shell granted OR
+default-deny OFF OR secrets reachable.
 
 ### `harness compare a/ b/`
 
