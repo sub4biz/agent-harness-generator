@@ -4,6 +4,49 @@ All notable changes to this project are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+### Added — Iter 102 (2026-06-14)
+
+- **`harness audit --bundle`** — JSON snapshot of the iter-51 audit
+  output. Same pattern as iter-90 `diag --bundle` and iter-97
+  `export-config`: bundle the full diagnostic state for sharing /
+  pasting into a security review without manually grabbing `npm audit
+  --json` output.
+- **Bundle shape** on success:
+  ```json
+  {
+    "schema": 1,
+    "generatedAt": "2026-06-14T…",
+    "harnessDir": "/path/to/harness",
+    "level": "high",
+    "total": 5,
+    "counts": { "info": 0, "low": 1, "moderate": 2, "high": 2, "critical": 0 },
+    "offenders": [
+      { "name": "lodash", "severity": "high", "advisory": "Prototype pollution" },
+      …
+    ],
+    "failCount": 2,
+    "exitCode": 1
+  }
+  ```
+- **Errors are also bundle-formed** — `no-package-json`,
+  `no-lockfile`, `unknown-level`, `non-json-audit-output` all return a
+  schema-1 JSON with an `error` field so CI scripts gating on
+  `failCount` don't crash on a malformed-input case.
+- **Exit code follows audit verdict** — `harness audit --bundle > b.json`;
+  `[ $? -eq 0 ]` works the same way it does for the text mode.
+- **Non-bundle (default) text mode unchanged** — existing scripts that
+  parse the human text or grep for `PASS:` / `FAIL:` keep working.
+- **`__tests__/harness-audit-bundle.test.ts`** — 4 cases:
+  - no-package-json error path emits parseable JSON
+  - no-lockfile error path emits parseable JSON
+  - unknown-level error path emits parseable JSON
+  - default (non-bundle) mode still emits human text, not JSON
+- **The 3 bundle-shaped subcommands now**: `diag --bundle` (iter 90),
+  `export-config` (iter 97), `audit --bundle` (iter 102). Each
+  targets a different use case (triage, security policy share,
+  vuln report) but follows the same JSON-snapshot pattern.
+- TS suite: **605/605** (was 601; +4 audit-bundle cases).
+
 ### Changed — Iter 101 (2026-06-14)
 
 - **iter-100's `--wizard` flag propagated across user-facing docs**

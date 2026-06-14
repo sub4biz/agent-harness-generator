@@ -22,21 +22,43 @@ export async function auditCmd(args: string[]): Promise<SubcommandResult> {
   const dir = resolve(positional[0] ?? process.cwd());
   const level = args.find(a => a.startsWith('--level='))?.slice('--level='.length) ?? 'high';
   const includeDev = args.includes('--include-dev');
+  // iter 102: --bundle emits the full audit JSON (npm audit raw output +
+  // harness metadata) so users can paste it into a security review or
+  // attach to a GitHub issue. Same pattern as iter-90 diag --bundle.
+  const bundle = args.includes('--bundle');
 
   const lines: string[] = [`harness audit — ${dir} (level=${level})`];
 
   if (!LEVELS.includes(level as any)) {
+    if (bundle) {
+      return {
+        code: 2,
+        lines: [JSON.stringify({ schema: 1, error: 'unknown-level', level, validLevels: LEVELS }, null, 2)],
+      };
+    }
     lines.push(`  unknown --level=${level} (use one of ${LEVELS.join(', ')})`);
     return { code: 2, lines };
   }
 
   const pkgPath = join(dir, 'package.json');
   if (!existsSync(pkgPath)) {
+    if (bundle) {
+      return {
+        code: 1,
+        lines: [JSON.stringify({ schema: 1, error: 'no-package-json', dir }, null, 2)],
+      };
+    }
     lines.push(`  no package.json at ${dir}`);
     return { code: 1, lines };
   }
   const lockPath = join(dir, 'package-lock.json');
   if (!existsSync(lockPath)) {
+    if (bundle) {
+      return {
+        code: 1,
+        lines: [JSON.stringify({ schema: 1, error: 'no-lockfile', dir }, null, 2)],
+      };
+    }
     lines.push(`  no package-lock.json at ${dir} — run \`npm install --package-lock-only\` first`);
     return { code: 1, lines };
   }
@@ -63,8 +85,24 @@ export async function auditCmd(args: string[]): Promise<SubcommandResult> {
   try { parsed = JSON.parse(stdout); } catch { /* */ }
   if (!parsed) {
     if (exitCode === 0) {
+      if (bundle) {
+        return {
+          code: 0,
+          lines: [JSON.stringify({
+            schema: 1, generatedAt: new Date().toISOString(),
+            harnessDir: dir, level, total: 0, counts: {},
+            offenders: [], failCount: 0, exitCode: 0,
+          }, null, 2)],
+        };
+      }
       lines.push('  no advisories at the configured level');
       return { code: 0, lines };
+    }
+    if (bundle) {
+      return {
+        code: 1,
+        lines: [JSON.stringify({ schema: 1, error: 'non-json-audit-output', exitCode, stderr }, null, 2)],
+      };
     }
     lines.push(`  npm audit produced non-JSON output (exit ${exitCode})`);
     return { code: 1, lines };
@@ -74,16 +112,35 @@ export async function auditCmd(args: string[]): Promise<SubcommandResult> {
   const levelIdx = LEVELS.indexOf(level as any);
   const failCount = LEVELS.slice(levelIdx).reduce((s, l) => s + (counts[l] ?? 0), 0);
   const total = Object.values<number>(counts).reduce((s, n) => s + (n ?? 0), 0);
+  const offenders = Object.entries<any>(parsed.vulnerabilities ?? {})
+    .filter(([, v]) => LEVELS.indexOf((v as any).severity) >= levelIdx)
+    .map(([name, v]) => ({ name, severity: (v as any).severity, advisory: (v as any).via?.[0]?.title ?? null }));
+  const code = failCount === 0 ? 0 : 1;
+
+  if (bundle) {
+    return {
+      code,
+      lines: [JSON.stringify({
+        schema: 1,
+        generatedAt: new Date().toISOString(),
+        harnessDir: dir,
+        level,
+        total,
+        counts,
+        offenders,
+        failCount,
+        exitCode: code,
+      }, null, 2)],
+    };
+  }
+
   lines.push(`  total advisories: ${total}`);
   lines.push(`  per severity: ${LEVELS.map(l => `${l}=${counts[l] ?? 0}`).join(', ')}`);
   if (failCount === 0) {
     lines.push(`  PASS: 0 advisories at ${level}+`);
     return { code: 0, lines };
   }
-  const offenders = Object.entries<any>(parsed.vulnerabilities ?? {})
-    .filter(([, v]) => LEVELS.indexOf((v as any).severity) >= levelIdx)
-    .map(([name, v]) => `${name}(${(v as any).severity})`)
-    .slice(0, 5);
-  lines.push(`  FAIL: ${failCount} advisories at ${level}+: ${offenders.join(', ')}`);
+  const offenderText = offenders.slice(0, 5).map(o => `${o.name}(${o.severity})`);
+  lines.push(`  FAIL: ${failCount} advisories at ${level}+: ${offenderText.join(', ')}`);
   return { code: 1, lines };
 }
