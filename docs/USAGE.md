@@ -280,6 +280,7 @@ Honesty caveat from the underlying `@ruvector/emergent-time` package: the SDK is
 | Pre-scaffold: is this REPO ready for an agent? | `harness genome <repo>` (iter 110) |
 | Score the harness 0–100 with badges (grade A/B/C/F) | `harness score <path>` (iter 111) |
 | MCP threat-model artifact for a PR / compliance review | `harness threat-model <path>` (iter 112) |
+| Emit OIA v0.1 cross-cutting manifest (ADR-034) | `harness oia-manifest <path>` (iter 121) |
 | Drift-detect against the latest template | `harness upgrade` (iter 47) |
 | Sign a release manifest | `harness sign` (iter 8) |
 | Verify the witness signature | `harness verify` (iter 8) |

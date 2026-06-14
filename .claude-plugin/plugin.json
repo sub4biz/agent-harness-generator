@@ -63,7 +63,8 @@
     "compare-harnesses",
     "repo-genome",
     "score-harness",
-    "threat-model"
+    "threat-model",
+    "oia-manifest"
   ],
   "commands": [
     {
@@ -109,6 +110,10 @@
     {
       "name": "threat-model",
       "description": "MCP threat-model artifact for PR / compliance review — allowed/denied tools, dangerous perms, secrets reachability, network/shell/file-write grants, default-deny posture (iter 112, 'enterprise gold')."
+    },
+    {
+      "name": "oia-manifest",
+      "description": "Emit/validate `.harness/oia-manifest.json` — OIA v0.1 9-layer reference architecture alignment (ADR-034). Self-describes MCP wiring, witness signing, audit-log, identity posture. --check shape-validates; PASS 0 / DRIFT 1 / missing 2."
     }
   ],
   "permissions": ["memory", "filesystem", "network"],
