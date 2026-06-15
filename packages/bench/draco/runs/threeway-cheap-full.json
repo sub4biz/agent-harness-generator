@@ -9,50 +9,50 @@
   "arms": {
     "vanilla": {
       "arm": "single",
-      "score": 0.7788344671923618,
+      "score": 0.7566498749788224,
       "perDimension": {
-        "grounding": 0.5151723359618097,
-        "coverage": 0.56,
-        "balance": 0.95,
+        "grounding": 0.47574937489411173,
+        "coverage": 0.5199999999999999,
+        "balance": 0.925,
         "cleanliness": 1,
-        "faithfulness": 0.869
+        "faithfulness": 0.8625
       },
-      "totalTokens": 43701
+      "totalTokens": 40529
     },
     "harness": {
       "arm": "single",
-      "score": 0.7610603186240286,
+      "score": 0.7412114035087718,
       "perDimension": {
-        "grounding": 0.37580159312014144,
-        "coverage": 0.6100000000000001,
+        "grounding": 0.22405701754385965,
+        "coverage": 0.6199999999999999,
         "balance": 0.95,
         "cleanliness": 1,
-        "faithfulness": 0.8694999999999998
+        "faithfulness": 0.9119999999999999
       },
-      "totalTokens": 1521487
+      "totalTokens": 1420777
     },
     "fusion": {
       "arm": "fusion",
-      "score": 0.7593537051184109,
+      "score": 0.7498811629546924,
       "perDimension": {
-        "grounding": 0.32343519225872164,
-        "coverage": 0.6600000000000001,
+        "grounding": 0.28440581477346183,
+        "coverage": 0.6300000000000001,
         "balance": 0.95,
-        "cleanliness": 0.9833333333333332,
-        "faithfulness": 0.8799999999999999
+        "cleanliness": 1,
+        "faithfulness": 0.885
       },
-      "totalTokens": 1427010
+      "totalTokens": 1407790
     }
   },
   "deltas": {
-    "harnessOverVanilla": -0.01777414856833326,
-    "fusionOverHarness": -0.0017066135056176268,
-    "fusionOverVanilla": -0.019480762073950886
+    "harnessOverVanilla": -0.015438471470050619,
+    "fusionOverHarness": 0.008669759445920633,
+    "fusionOverVanilla": -0.006768712024129986
   },
   "thesisHolds": false,
   "ordering": [
-    "fusion",
     "harness",
+    "fusion",
     "vanilla"
   ]
 }
