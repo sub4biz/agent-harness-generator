@@ -76,6 +76,29 @@ const same = TrainedRouter.fromJSON(json);
 KRR with a cosine kernel is the regularised generalisation of k-NN; `λ` (fit by
 LOO) controls the bias–variance trade-off that hurts k-NN on small data. On the
 DRACO n=20 dataset it ties k-NN (the data ceiling); it's the router that
-generalises better as your eval set grows. The trained model is the same dataset
-a native FastGRNN (`@ruvector/tiny-dancer`) will consume once its crate supports
-training + persistence.
+generalises better as your eval set grows.
+
+## Native FastGRNN router (optional, `@ruvector/tiny-dancer`)
+
+The pure-TS router above needs zero native deps. For a trained *native* model,
+the **same `{ embedding, scores }` dataset** drives a real FastGRNN (Rust/NAPI,
+gradients + Adam, persisted to `.safetensors`) — programmatically:
+
+```ts
+import { trainNativeRouter, NativeRouter, isNativeRouterAvailable } from '@metaharness/router';
+// needs `npm i @ruvector/tiny-dancer` (optional peer); falls back to pure-TS otherwise
+const res = await trainNativeRouter(rows, prices, { outputPath: './router.safetensors' });
+const router = await NativeRouter.load({ modelPath: res.modelPath });
+```
+
+…or with **zero code** via the published CLI (validated on the DRACO routing
+dataset — trains at the full embedding dim, e.g. 1536):
+
+```bash
+npx ruvector tiny-dancer train draco.json --out model.safetensors --prices '{"haiku":1,"opus":15}'
+npx ruvector tiny-dancer score model.safetensors --query @query.json   # high → route cheap
+```
+
+Pick the backend automatically with `resolveRouterBackend('auto')` (`'native'`
+when tiny-dancer is installed, else `'js'`). See ADR-043 for the measured data
+ceiling and the train↔route dimension note.

@@ -146,3 +146,24 @@ router for arbitrary high-dim embeddings remains the pure-TS KRR/k-NN path**; th
 native backend ships as available + validated, with high-dim native routing
 tracked pending an upstream train↔route feature-dim alignment. No result is
 gamed: native training is real, the route constraint is reported as found.
+
+---
+
+## Update — `npx ruvector tiny-dancer train/score` CLI (full-dim, validated)
+
+`@ruvector/tiny-dancer` now ships a no-code CLI (`ruvector tiny-dancer train | score | info`)
+that consumes the **same `{ embedding, scores }` DRACO dataset** as this package.
+Validated end-to-end on the committed DRACO routing dataset (`routing-dataset.json`,
+20 rows × 1536-dim): `train` produced a 222 KB `.safetensors` (acc 1.000, val 0.250
+— the same n=20 data ceiling KRR hit), and `score --query <1536-dim embedding>`
+returned a cheap-vs-strong decision.
+
+Importantly, the CLI **`score` path operates at the full embedding dim** (1536
+here) — it forwards the query embedding directly through the model, so it does
+NOT hit the fixed-5-feature route limitation documented above (that constraint is
+specific to the `Router.route(candidates)` relational-feature API, not the
+single-query `score` path). So the no-code arc — `train` a DRACO dataset → score
+queries to route cheap-vs-strong — works today at real embedding dimensions. The
+`@metaharness/router` README documents both the programmatic (`trainNativeRouter`)
+and CLI paths. The n=20 generalisation ceiling (val 0.250) is unchanged: the value
+is the scalable, trainable substrate, not a small-data miracle.
