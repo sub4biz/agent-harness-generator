@@ -45,7 +45,10 @@ const CHECKS = {
     // (@ruvnet/agent-harness-generator) version INDEPENDENTLY of the
     // @metaharness/* workspace packages — they ship to npm on their own semver
     // cadence. Exclude them from the workspace-coherence check.
-    const INDEPENDENT = new Set(['metaharness', '@ruvnet/agent-harness-generator']);
+    // @metaharness/router is likewise a standalone published library on its own
+    // semver (0.2.0 → 0.3.x as its API grows — ADR-043 native backend), not
+    // lock-stepped to the monorepo version.
+    const INDEPENDENT = new Set(['metaharness', '@ruvnet/agent-harness-generator', '@metaharness/router']);
     for (const p of packages) {
       if (!p.isDirectory()) continue;
       const pkgPath = join(ROOT, 'packages', p.name, 'package.json');
