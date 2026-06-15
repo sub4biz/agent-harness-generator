@@ -218,8 +218,10 @@ const CHECKS = {
         return { tag: 'FAIL', detail: `${STUDIO_URL} → HTTP ${idxRes.status}` };
       }
       const html = await idxRes.text();
-      if (!html.includes('Agent Harness Generator')) {
-        return { tag: 'FAIL', detail: 'index served but missing "Agent Harness Generator" title' };
+      // Brand check — the Studio was renamed Agent Harness Generator → MetaHarness
+      // (iter-118). "MetaHarness" is in the <title>, og:title, and the rendered h1.
+      if (!html.includes('MetaHarness')) {
+        return { tag: 'FAIL', detail: 'index served but missing "MetaHarness" title/brand' };
       }
       // Find a Vite bundle to probe — script src="/agent-harness-generator/assets/index-<hash>.js"
       const m = html.match(/src="([^"]*\/assets\/index-[A-Za-z0-9_-]+\.js)"/);
