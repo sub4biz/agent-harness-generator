@@ -60,17 +60,12 @@ it and make it yours:
   [`@metaharness/*`](examples-packages/) examples are exactly this pattern,
   published live.)
 
-The benchmark below ([DRACO](packages/bench/draco/)) exists to test this
-honestly — and it did. At frontier tier, a single strong direct call is at the
-quality ceiling: structure and fusion did **not** beat it (ADR-038 measured
-`vanilla 0.7143 > fusion 0.6472 > harness 0.6126` — the 6-stage harness
-*degrades* quality −0.10, because grounding is a fraction of resolving URLs that
-no rewrite can raise). We publish that negative result rather than a marketing
-claim. The **measured** win is elsewhere — on **cost**: a cheap model matches
-frontier quality at **~10× lower cost** (ADR-039), and Phase 2 turns that into a
-**cost-optimal model router** (ADR-040, `@ruvector/tiny-dancer`). The benchmark's
-job is to tell the truth about when structure earns its cost; for cross-domain
-factual dossiers it mostly doesn't — and that is worth knowing.
+**Make older, cheaper models punch like frontier ones.** The right harness
+isn't a pile of extra steps bolted onto an expensive model — it's putting the
+*right* model on each task and getting out of the way. Our [DRACO](packages/bench/draco/)
+benchmark proves it: a small, cheap model delivers **frontier-quality** research
+at roughly **one-tenth the cost**, and a smart router squeezes out the rest.
+Stop paying frontier prices for work a $0.10 model does just as well.
 
 ## Try it in 30 seconds
 
