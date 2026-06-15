@@ -427,12 +427,13 @@ export interface SelfConsistencyReport {
 
 export async function runSelfConsistencyAblation(
   corpus: DracoCorpus,
-  opts: AblationOptions & { candidates?: number },
+  opts: AblationOptions & { candidates?: number; selectionMode?: 'holistic' | 'composite' },
 ): Promise<SelfConsistencyReport> {
   const judged = !!opts.judgeTransport;
   const judgeModel = opts.judgeModel ?? DRACO_JUDGE.model;
   const baseModel = opts.singleModel ?? DRACO_SINGLE_MODEL;
   const candidates = opts.candidates ?? 3;
+  const selectionMode = opts.selectionMode ?? 'holistic';
   if (!opts.judgeTransport) {
     throw new Error('self-consistency selection requires a judge transport (the selector). Run with the judge enabled.');
   }
@@ -460,7 +461,7 @@ export async function runSelfConsistencyAblation(
     const [v, sc] = await Promise.all([
       vanillaResearch({ id: q.id, prompt: q.prompt }, baseModel, opts.transport),
       selfConsistentResearch({ id: q.id, prompt: q.prompt }, {
-        baseModel, judgeModel, transport: opts.transport, judgeTransport: opts.judgeTransport!, candidates,
+        baseModel, judgeModel, transport: opts.transport, judgeTransport: opts.judgeTransport!, candidates, selectionMode,
       }),
     ]);
     const [vs, ss] = await Promise.all([scoreOne(v.answer, q), scoreOne(sc.answer, q)]);

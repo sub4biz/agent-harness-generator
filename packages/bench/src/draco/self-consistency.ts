@@ -39,6 +39,27 @@ const JUDGE_SELECT_PROMPT =
   '(addresses the whole question), balance (multiple positions), and faithfulness ' +
   '(claims supported by their citations). Reply with ONLY the number.';
 
+// Arm 3 (ADR-038): rate each candidate on the SAME dimensions the DRACO scorer
+// uses, then select on the equal-weight sum — so selection optimises what is
+// actually scored, not a single holistic guess (which gained coverage but lost
+// balance in arm 2). Reply is parsed leniently (4 numbers in order).
+const COMPOSITE_JUDGE_PROMPT =
+  'You are an impartial research-quality judge. Rate the dossier on each of these ' +
+  'four axes from 0.0 to 1.0, in THIS order: grounding (real checkable source ' +
+  'URLs), coverage (addresses every facet), balance (consensus AND dissent), ' +
+  'faithfulness (claims supported by their citations). Reply with ONLY four ' +
+  'numbers separated by commas, e.g. "0.8,0.7,0.6,0.9".';
+
+/** Parse the equal-weight composite (sum of 4 dimension ratings) from judge text. */
+export function parseComposite(text: string): number {
+  const nums = (text.match(/0?\.\d+|1(?:\.0+)?|0/g) ?? []).slice(0, 4).map((s) => {
+    const v = parseFloat(s);
+    return Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0;
+  });
+  if (nums.length === 0) return 0;
+  return nums.reduce((a, b) => a + b, 0); // 0..4; relative ordering is what selection uses
+}
+
 export interface SelfConsistencyResult {
   questionId: string;
   answer: string;
@@ -70,9 +91,12 @@ export async function selfConsistentResearch(
     judgeTransport: OpenRouterTransport;
     /** How many candidates (1..CANDIDATE_ANGLES.length). Default 3. */
     candidates?: number;
+    /** 'holistic' (single 0-1, arm 2) or 'composite' (per-dimension sum, arm 3). Default 'holistic'. */
+    selectionMode?: 'holistic' | 'composite';
   },
 ): Promise<SelfConsistencyResult> {
   const n = Math.min(Math.max(1, opts.candidates ?? 3), CANDIDATE_ANGLES.length);
+  const composite = opts.selectionMode === 'composite';
   let totalTokens = 0;
 
   // 1. Generate N intact candidate dossiers (diverse angles).
@@ -91,11 +115,11 @@ export async function selfConsistentResearch(
   const ratings = await Promise.all(
     dossiers.map(async (d) => {
       const r = await opts.judgeTransport(opts.judgeModel, [
-        { role: 'system', content: JUDGE_SELECT_PROMPT },
+        { role: 'system', content: composite ? COMPOSITE_JUDGE_PROMPT : JUDGE_SELECT_PROMPT },
         { role: 'user', content: d.text },
       ]);
       totalTokens += r.tokens;
-      return parseQuality(r.text);
+      return composite ? parseComposite(r.text) : parseQuality(r.text);
     }),
   );
 

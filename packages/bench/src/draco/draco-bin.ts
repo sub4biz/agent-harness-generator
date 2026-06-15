@@ -122,8 +122,9 @@ async function main() {
   // ADR-038 arm 2: --selfcon runs vanilla vs best-of-N self-consistency selection.
   if (has('selfcon')) {
     const nCand = arg('candidates') ? parseInt(arg('candidates')!, 10) : 3;
-    const sc = await runSelfConsistencyAblation(corpus, { transport, transportKind: kind, checkUrl, judgeTransport, limit, onProgress, candidates: nCand, ...cheapOpts });
-    process.stdout.write(`\nDRACO ${kind.toUpperCase()} SELF-CONSISTENCY — vanilla vs best-of-${sc.candidates} selection\n`);
+    const selectionMode = has('composite') ? 'composite' as const : 'holistic' as const;
+    const sc = await runSelfConsistencyAblation(corpus, { transport, transportKind: kind, checkUrl, judgeTransport, limit, onProgress, candidates: nCand, selectionMode, ...cheapOpts });
+    process.stdout.write(`\nDRACO ${kind.toUpperCase()} SELF-CONSISTENCY — vanilla vs best-of-${sc.candidates} selection (${selectionMode})\n`);
     if (kind === 'mock') process.stdout.write('NOTE: MOCK transport — machinery only, not a live result.\n');
     process.stdout.write(`  vanilla (single draw):      ${sc.vanilla.score.toFixed(4)}\n`);
     process.stdout.write(`  self-consistency (best-of-${sc.candidates}): ${sc.selfConsistency.score.toFixed(4)}  (${sc.delta >= 0 ? '+' : ''}${sc.delta.toFixed(4)} vs vanilla)\n`);

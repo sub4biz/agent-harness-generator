@@ -2,7 +2,7 @@
 // DRACO self-consistency arm (ADR-038 arm 2) — offline, mock-transport tests.
 
 import { describe, it, expect, vi } from 'vitest';
-import { selfConsistentResearch, parseQuality, CANDIDATE_ANGLES } from '../src/draco/self-consistency.js';
+import { selfConsistentResearch, parseQuality, parseComposite, CANDIDATE_ANGLES } from '../src/draco/self-consistency.js';
 import type { OpenRouterTransport } from '../src/draco/fusion.js';
 
 describe('parseQuality', () => {
@@ -14,6 +14,13 @@ describe('parseQuality', () => {
   });
   it('fails closed to 0 on non-numeric', () => expect(parseQuality('excellent')).toBe(0));
   it('clamps to [0,1]', () => expect(parseQuality('0.99')).toBeLessThanOrEqual(1));
+});
+
+describe('parseComposite (arm 3 — per-dimension sum)', () => {
+  it('sums four comma-separated ratings', () => expect(parseComposite('0.8,0.7,0.6,0.9')).toBeCloseTo(3.0));
+  it('parses numbers embedded in prose', () => expect(parseComposite('grounding 0.5, coverage 0.5, balance 0.5, faithfulness 0.5')).toBeCloseTo(2.0));
+  it('uses only the first four numbers', () => expect(parseComposite('1,1,1,1,1,1')).toBeCloseTo(4.0));
+  it('fails closed to 0 on non-numeric', () => expect(parseComposite('great dossier')).toBe(0));
 });
 
 describe('selfConsistentResearch — best-of-N selection', () => {
