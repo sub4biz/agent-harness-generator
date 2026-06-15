@@ -77,6 +77,40 @@ every router variant after that is free offline arithmetic.
 - Pure-arithmetic policy evaluation over one matrix keeps it offline-testable and
   cheap; CI runs the full suite so the routing result cannot regress.
 
+## Results — matrix run 1 (frontier n=20, pool haiku-4.5 / gpt-5 / opus-4)
+
+| policy | quality | % oracle-q | cost | q/$ |
+|--------|---------|-----------|------|-----|
+| always_haiku | 0.6903 | 86% | $0.13 | 5.36 |
+| always_gpt-5 | 0.7462 | 93% | $2.42 | 0.31 |
+| always_opus | 0.7003 | 87% | $1.31 | 0.53 |
+| **oracle_quality** | **0.8025** | **100%** | $1.67 | 0.48 |
+| oracle_cost_optimal(ε=.03) | 0.8011 | 100% | $1.45 | 0.55 |
+| router_v1 (always-cheapest) | 0.6903 | 86% | $0.13 | 5.36 |
+
+**Phase 2 is validated.** The oracle (0.8025) beats the best *fixed* model
+(gpt-5, 0.7462) by **+0.056 / +7.5%** — models genuinely disagree per question,
+so per-question routing has real, measured headroom. The routing opportunity is
+the 93% → 100% gap.
+
+**Two honest corrections this run forced:**
+
+1. **"haiku > opus on quality" did NOT survive a second run.** Here haiku 0.6903
+   ≈ opus 0.7003 (a tie, haiku slightly lower) — the earlier 0.7566 was high
+   variance. The robust, surviving claim is the weaker one: **haiku ~matches
+   opus quality at ~10× lower cost** (cost-efficiency holds; the stronger
+   quality-superiority claim does not). The guardrail worked.
+2. **q/$ alone is the wrong figure of merit** — always-cheapest trivially maxes
+   it while sitting at 86% quality. `analyse()` now also reports **% of oracle
+   QUALITY**, the constrained objective. The real target for `router_v2` is to
+   approximate the oracle's per-question pick: clear the best single model's 93%
+   without paying always-gpt-5's $2.42.
+
+**Next:** `router_v2` needs a routing-time pre-signal (a cheap confidence rating
+of a candidate dossier, observable WITHOUT the scorer's URL re-fetch). The matrix
+will be enriched to record it per cell so router_v2 is evaluated honestly (the
+router sees only the pre-signal, never the post-hoc score the oracle uses).
+
 ## Honest guardrails
 
 - The "haiku > opus on DRACO" claim must **survive repeated runs** before it

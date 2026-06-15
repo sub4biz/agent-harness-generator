@@ -42,6 +42,8 @@ export interface PolicyResult {
   qualityPerUSD: number;
   /** Fraction of oracle quality-per-dollar (filled by analyse()). */
   pctOfOracle?: number;
+  /** Fraction of oracle QUALITY — the constrained figure of merit (filled by analyse()). */
+  pctOfOracleQuality?: number;
 }
 
 /**
@@ -159,7 +161,19 @@ function bestBy(m: RoutingMatrix, q: string, key: (c: RoutingCell) => number): s
   return best;
 }
 
-/** Attach pctOfOracle (vs oracle_cost_optimal's quality/dollar) to every policy. */
+/**
+ * Attach two figures of merit to every policy, measured against the oracle:
+ *  - pctOfOracleQuality — quality / oracle.quality. The constrained objective:
+ *    how close to perfect per-question routing on QUALITY. (Always-cheapest
+ *    scores low here — it's cheap but low-quality.)
+ *  - pctOfOracle — quality-per-dollar / oracle.qualityPerUSD. The raw q/$ ratio;
+ *    a cheap policy can exceed 100% here while badly missing quality, which is
+ *    exactly why quality% is reported alongside it.
+ */
 export function analyse(policies: PolicyResult[], oracle: PolicyResult): PolicyResult[] {
-  return policies.map((p) => ({ ...p, pctOfOracle: oracle.qualityPerUSD > 0 ? p.qualityPerUSD / oracle.qualityPerUSD : 0 }));
+  return policies.map((p) => ({
+    ...p,
+    pctOfOracle: oracle.qualityPerUSD > 0 ? p.qualityPerUSD / oracle.qualityPerUSD : 0,
+    pctOfOracleQuality: oracle.quality > 0 ? p.quality / oracle.quality : 0,
+  }));
 }

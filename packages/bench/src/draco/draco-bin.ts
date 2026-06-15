@@ -138,7 +138,7 @@ async function main() {
     process.stdout.write(`\nDRACO ${kind.toUpperCase()} ROUTING (ADR-040) — quality/dollar ladder (eps=${eps})\n`);
     process.stdout.write(`  pool: ${pool.join(', ')}\n`);
     for (const p of ladder) {
-      process.stdout.write(`  ${p.label.padEnd(34)} q ${p.quality.toFixed(4)}  $${p.costUSD.toFixed(3)}  q/$ ${p.qualityPerUSD.toFixed(2)}  ${((p.pctOfOracle ?? 0) * 100).toFixed(0)}% of oracle\n`);
+      process.stdout.write(`  ${p.label.padEnd(34)} q ${p.quality.toFixed(4)} (${((p.pctOfOracleQuality ?? 0) * 100).toFixed(0)}% oracle-q)  $${p.costUSD.toFixed(3)}  q/$ ${p.qualityPerUSD.toFixed(2)}\n`);
     }
     if (out) {
       const outPath = resolve(out);
