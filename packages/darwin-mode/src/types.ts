@@ -144,6 +144,8 @@ export interface EvolutionConfig {
    * 'agent' sandbox (ADR-106, Tier 2): executes the variant's REAL surface code
    * in a child `node --experimental-strip-types` process. Requires Node ≥ 22.
    */
+  /** Custom agent-task suite for 'agent' mode (ADR-106); defaults to DEFAULT_AGENT_TASKS. */
+  agentTasks?: import('./tier2-sandbox.js').AgentTask[];
   /**
    * Tie-break policy when variants share the top finalScore (ADR-072's scorer
    * ceilings at 0.985, so ties are the common case). 'insertion' (default) is

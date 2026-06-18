@@ -53,4 +53,15 @@ describe.skipIf(nodeMajor < 22)('Tier-2 agent sandbox (real surface-code executi
     // The wider window locates buggy files the narrow one misses → solves more.
     expect(solved(wideTraces)).toBeGreaterThan(solved(baseTraces));
   }, 60_000);
+
+  it('accepts a custom agent-task suite (one trace per task)', async () => {
+    const profile = await profileRepo(repo);
+    const base = await generateBaselineHarness(profile, wr);
+    const custom = [
+      { id: 'c1', prompt: 'fix it', files: ['src/it.ts'], buggyFile: 'src/it.ts', classification: 'transient' as const, failAttempts: 0, backoffMs: 10, difficulty: 1 as const },
+      { id: 'c2', prompt: 'fix that', files: ['src/that.ts'], buggyFile: 'src/that.ts', classification: 'transient' as const, failAttempts: 0, backoffMs: 10, difficulty: 1 as const },
+    ];
+    const traces = await runVariantTasksAgent(base, custom);
+    expect(traces.map((t) => t.taskId)).toEqual(['c1', 'c2']);
+  }, 60_000);
 });

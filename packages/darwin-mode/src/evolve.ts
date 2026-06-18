@@ -112,7 +112,7 @@ async function evaluateVariant(
   // default 'real' mode runs the repo test command (surface-independent).
   const traces =
     cfg.sandboxMode === 'agent'
-      ? await runVariantTasksAgent(variant) // Tier 2: execute the variant's real surface code (ADR-106)
+      ? await runVariantTasksAgent(variant, cfg.agentTasks) // Tier 2: execute the variant's real surface code (ADR-106)
       : cfg.sandboxMode === 'mock'
         ? await runVariantTasksMock(variant, cfg.mockTasks)
         : await runVariantTasks(variant, profile, cfg.tasks, { taskTimeoutMs: timeout });
