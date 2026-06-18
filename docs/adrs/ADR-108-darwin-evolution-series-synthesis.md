@@ -28,7 +28,7 @@
 | Hyperbolic niches help (conditionally) | 095 | depth-structured: Poincaré sep **1.000** vs Euclidean 0.929; uniform: Euclidean wins (honest) |
 | Manifold goes live | 102 | nicheEntropy **0 → 0.69**, finalScore **flat 0.985 → 0.435–0.802** under `mock` |
 | Self-improvement | 103 | evolves contextBuilder window 30→70, finalScore **0.765 → 0.985** |
-| Diversity > greedy on deception | 105 | greedy **0/5**, behavioral-diversity **5/5**, clade 4/5 |
+| Diversity > greedy on deception (MOCK only) | 105/114 | mock: greedy 0/5, diversity 5/5 — but did NOT replicate on the real-surface substrate (greedy 3/3, diversity 2/3, ADR-114): advantage is substrate-dependent; crossover is the load-bearing piece |
 | Real surface code drives outcome | 106 | window 30/50/80 → solves **1/2/3** tasks (Tier-2); self-improves 0.618→0.985 |
 | Surface gates real LLM (window, not ranking — corrected) | 109/111 | wide window lets a real LLM fix a real test a narrow one can't; **ranking untested** (ADR-111 falsification) |
 | Real-LLM eval path | 107 | real failing test → 1 model call → real test PASSES, **$0.0005** |

@@ -1,0 +1,13 @@
+{
+  "substrate": "agent (real surface code, Tier-2)",
+  "landscape": "two-surface epistatic (reachable): treasure needs window>38 AND maxAttempts>3",
+  "seeds": [
+    7,
+    11,
+    23
+  ],
+  "crossedTreasure": {
+    "score": "3/3",
+    "behavioral-diversity": "2/3"
+  }
+}
