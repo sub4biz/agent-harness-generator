@@ -157,6 +157,52 @@ describe('Archive.best', () => {
   });
 });
 
+describe('Archive.selectElites (MAP-Elites quality-diversity)', () => {
+  /** Variants spanning 3 surfaces, all at the same ceiling score. */
+  function nicheArchive(): Archive {
+    const a = new Archive('/unused.json');
+    a.addVariant(variant({ id: 'p_a', mutationSurface: 'planner' }));
+    a.addVariant(variant({ id: 'p_b', mutationSurface: 'planner' }));
+    a.addVariant(variant({ id: 'r_a', mutationSurface: 'reviewer' }));
+    a.addVariant(variant({ id: 't_a', mutationSurface: 'toolPolicy' }));
+    a.setScore('p_a', score('p_a', 0.985));
+    a.setScore('p_b', score('p_b', 0.985));
+    a.setScore('r_a', score('r_a', 0.985));
+    a.setScore('t_a', score('t_a', 0.985));
+    return a;
+  }
+
+  it('returns champions from DISTINCT niches, not duplicates of one surface', () => {
+    const elites = nicheArchive().selectElites(3);
+    const surfaces = elites.map((v) => v.mutationSurface);
+    expect(new Set(surfaces).size).toBe(surfaces.length); // all distinct niches
+    expect(surfaces).toContain('planner');
+    expect(surfaces).toContain('reviewer');
+    expect(surfaces).toContain('toolPolicy');
+  });
+
+  it('keeps the highest-scoring member within a niche (ties → earliest insertion)', () => {
+    const a = new Archive('/unused.json');
+    a.addVariant(variant({ id: 'p_lo', mutationSurface: 'planner' }));
+    a.addVariant(variant({ id: 'p_hi', mutationSurface: 'planner' }));
+    a.setScore('p_lo', score('p_lo', 0.5));
+    a.setScore('p_hi', score('p_hi', 0.9));
+    expect(a.selectElites(1).map((v) => v.id)).toEqual(['p_hi']);
+  });
+
+  it('contrast: selectParents can return same-surface duplicates that selectElites avoids', () => {
+    const a = nicheArchive();
+    // Two top 'planner' variants inserted first → selectParents(2) takes both.
+    expect(a.selectParents(2).every((v) => v.mutationSurface === 'planner')).toBe(true);
+    // selectElites(2) spans two niches instead.
+    expect(new Set(a.selectElites(2).map((v) => v.mutationSurface)).size).toBe(2);
+  });
+
+  it('limit <= 0 yields []', () => {
+    expect(nicheArchive().selectElites(0)).toEqual([]);
+  });
+});
+
 describe('Archive.setScore', () => {
   it('throws a clear error for an unknown variant', () => {
     const archive = buildTree();

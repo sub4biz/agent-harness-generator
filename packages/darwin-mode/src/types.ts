@@ -140,6 +140,14 @@ export interface EvolutionConfig {
    */
   tieBreaker?: 'insertion' | 'faster';
   /**
+   * Parent-selection strategy on a stalled generation (no promoted children).
+   * 'score' (default) takes the top finalScore variants (ADR-073). 'quality-
+   * diversity' (MAP-Elites) takes the elite per behaviour niche (mutated
+   * surface) so the population keeps exploring all surfaces instead of
+   * collapsing onto one at the 0.985 ceiling. Deterministic either way.
+   */
+  selection?: 'score' | 'quality-diversity';
+  /**
    * Pluggable code generator (ADR-071). Default is the DeterministicMutator;
    * pass an LLM-backed one (e.g. OpenRouterMutator) to evolve via a model — it
    * still passes the same validateGeneratedCode safety gate.

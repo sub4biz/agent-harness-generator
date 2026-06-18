@@ -148,6 +148,52 @@ export class Archive {
   }
 
   /**
+   * MAP-Elites elite selection (quality-diversity). Bin the scored records by a
+   * behaviour descriptor (default: the mutated surface), keep the BEST record per
+   * bin (highest finalScore, ties by earliest insertion), and return up to
+   * `limit` bin-champions ordered by finalScore. Where `selectParents` can return
+   * `limit` near-identical variants (all the same surface — common at the ADR-072
+   * 0.985 ceiling), this returns champions from DISTINCT niches, so the next
+   * generation explores diverse surfaces instead of collapsing onto one.
+   *
+   * Pure and deterministic (no wall-clock) → reproducible from `archive.json`.
+   *
+   * @param limit Maximum number of elites to return. `<= 0` yields `[]`.
+   * @param descriptorOf Behaviour-descriptor function; defaults to mutated surface.
+   */
+  selectElites(
+    limit: number,
+    descriptorOf: (variant: HarnessVariant) => string = (v) => v.mutationSurface,
+  ): HarnessVariant[] {
+    if (limit <= 0) return [];
+
+    // descriptor → champion, tracking insertion index for deterministic ties.
+    const champions = new Map<string, { record: ArchiveRecord; index: number }>();
+    let index = 0;
+    for (const record of this.records.values()) {
+      const i = index++;
+      if (record.score === null) continue;
+      const key = descriptorOf(record.variant);
+      const current = champions.get(key);
+      if (
+        current === undefined ||
+        record.score.finalScore > current.record.score!.finalScore
+      ) {
+        champions.set(key, { record, index: i });
+      }
+    }
+
+    return [...champions.values()]
+      .sort((a, b) => {
+        const delta = b.record.score!.finalScore - a.record.score!.finalScore;
+        if (delta !== 0) return delta; // higher finalScore first
+        return a.index - b.index; // tie-break: earlier insertion first
+      })
+      .slice(0, limit)
+      .map((c) => c.record.variant);
+  }
+
+  /**
    * The path of ids from the root ancestor down to `variantId`, following
    * `parentId` upward then reversing. Returns `[]` if `variantId` is unknown.
    * Guarded against cycles (e.g. a self-parent or a corrupt ancestor loop): each

@@ -248,7 +248,13 @@ export async function evolve(config: EvolutionConfig): Promise<EvolutionResult> 
 
     // Selection (ADR-073): prefer promoted children; on a stalled generation
     // sample the whole archive so we explore sideways instead of dead-ending.
-    parents = promoted.length > 0 ? promoted : archive.selectParents(2);
+    // Opt-in MAP-Elites (config.selection): the stall fallback draws elites from
+    // DISTINCT surface niches so exploration stays diverse at the score ceiling.
+    const stallFallback =
+      config.selection === 'quality-diversity'
+        ? archive.selectElites(2)
+        : archive.selectParents(2);
+    parents = promoted.length > 0 ? promoted : stallFallback;
     if (parents.length === 0) break;
   }
 
