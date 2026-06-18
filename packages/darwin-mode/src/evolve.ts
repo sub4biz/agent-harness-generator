@@ -385,7 +385,11 @@ export async function evolve(config: EvolutionConfig): Promise<EvolutionResult> 
       // by chance; BH corrects it. It can only DEMOTE (never promotes a child
       // that failed its clauses) — a child stays promoted iff it already passed
       // AND survives the generation-wide correction at q = config.fdrQ.
-      if (config.fdrQ !== undefined) {
+      // ADR-112: BH only controls FDR when the bootstrap p-values are calibrated,
+      // which requires ≥ 5 task-scores per variant (at n=3 the empirical FDR is
+      // ~33%, not q). With fewer tasks we leave the per-comparison gate in place
+      // and record a caveat rather than apply an uncalibrated correction.
+      if (config.fdrQ !== undefined && suite.tasks.length >= 5) {
         const entries = [...benchByChild.entries()];
         const significant = benjaminiHochberg(entries.map(([, d]) => d.pValue), config.fdrQ);
         entries.forEach(([id, d], i) => {
@@ -397,6 +401,10 @@ export async function evolve(config: EvolutionConfig): Promise<EvolutionResult> 
             });
           }
         });
+      } else if (config.fdrQ !== undefined) {
+        for (const [id, d] of benchByChild.entries()) {
+          benchByChild.set(id, { ...d, reasons: [...d.reasons, `FDR skipped: only ${suite.tasks.length} tasks (<5) — BH uncalibrated at small n (ADR-112)`] });
+        }
       }
 
       // ADR-097: escalate the curriculum when the population MASTERS the tier.

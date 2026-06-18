@@ -1,0 +1,35 @@
+{
+  "question": "Are bootstrap p-values calibrated at small n, and does BH control FDR on them?",
+  "results": [
+    {
+      "n": 3,
+      "childrenPerGen": 8,
+      "q": 0.05,
+      "generations": 20000,
+      "pCalibration_PleHalf": 0.499,
+      "rawLower95FalsePositiveRate": 0.0493,
+      "bhEmpiricalFDR": 0.332,
+      "bhControlled": false
+    },
+    {
+      "n": 5,
+      "childrenPerGen": 8,
+      "q": 0.05,
+      "generations": 20000,
+      "pCalibration_PleHalf": 0.502,
+      "rawLower95FalsePositiveRate": 0.0041,
+      "bhEmpiricalFDR": 0.0323,
+      "bhControlled": true
+    },
+    {
+      "n": 10,
+      "childrenPerGen": 8,
+      "q": 0.05,
+      "generations": 20000,
+      "pCalibration_PleHalf": 0.501,
+      "rawLower95FalsePositiveRate": 0,
+      "bhEmpiricalFDR": 0.0001,
+      "bhControlled": true
+    }
+  ]
+}

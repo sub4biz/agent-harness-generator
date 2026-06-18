@@ -97,6 +97,11 @@ export function bootstrapDelta(
  * for multiple testing). Standard step-up: sort ascending, find the largest k
  * with p_(k) ≤ (k/m)·q, reject all hypotheses with p ≤ that threshold. Pure and
  * deterministic. Empty input ⇒ empty output; q ≤ 0 ⇒ reject nothing.
+ *
+ * CALIBRATION (ADR-112): BH controls FDR only when the input p-values are
+ * (super-)uniform under the null. Bootstrap p-values from `bootstrapDelta` meet
+ * this from ~5 samples up; at n=3 they are too coarse/anti-conservative and the
+ * empirical FDR is ~33% at q=0.05. Callers must supply ≥ 5 task-scores per variant.
  */
 export function benjaminiHochberg(pValues: readonly number[], q: number): boolean[] {
   const m = pValues.length;

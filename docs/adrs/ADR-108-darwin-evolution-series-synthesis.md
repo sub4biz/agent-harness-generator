@@ -22,7 +22,7 @@
 |---|---|---|
 | Cheap beats frontier for code | 085 | DeepSeek-V3 ($0.4/Mtok) tops 15-model × 6-language execution frontier on quality/$ |
 | Determinism | 099 | archive divergence **0** across same-seed runs |
-| FDR control works | 099 | empirical FDR **0.049 ≤ 0.05** over 40k true-null trials |
+| FDR control works (n≥5 only) | 099/112 | empirical FDR **0.049 ≤ 0.05** on uniforms; on real bootstrap p-values BH controls FDR at **n≥5** task-scores, NOT n=3 (33%, ADR-112) |
 | Hyperbolic niches help (conditionally) | 095 | depth-structured: Poincaré sep **1.000** vs Euclidean 0.929; uniform: Euclidean wins (honest) |
 | Manifold goes live | 102 | nicheEntropy **0 → 0.69**, finalScore **flat 0.985 → 0.435–0.802** under `mock` |
 | Self-improvement | 103 | evolves contextBuilder window 30→70, finalScore **0.765 → 0.985** |
