@@ -1,0 +1,51 @@
+{
+  "experiment": "ADR-143 — open-loop vs closed-loop repair A/B (same stratified 25, SWE-bench Lite)",
+  "openLoop": {
+    "resolved": "3/25",
+    "rate": 12,
+    "wilson95": [
+      4.2,
+      30
+    ],
+    "ids": [
+      "mwaskom__seaborn-3190",
+      "pytest-dev__pytest-5227",
+      "scikit-learn__scikit-learn-13779"
+    ]
+  },
+  "closedLoop": {
+    "resolved": "4/25",
+    "rate": 16,
+    "wilson95": [
+      6.4,
+      34.7
+    ],
+    "ids": [
+      "django__django-15061",
+      "mwaskom__seaborn-3190",
+      "pytest-dev__pytest-5227",
+      "sphinx-doc__sphinx-8721"
+    ],
+    "resolvedByAttempt": {
+      "a1": [
+        "pytest-dev__pytest-5227",
+        "sphinx-doc__sphinx-8721"
+      ],
+      "a2": [
+        "django__django-15061",
+        "mwaskom__seaborn-3190"
+      ]
+    },
+    "patchesProduced": 14,
+    "solveCost_usd": 0.5849,
+    "attempts": 3
+  },
+  "delta": "+1 net (12%→16%); CIs overlap heavily (within noise at n=25). Repair mechanism real: 2/4 resolved on attempt 2.",
+  "newlyResolvedVsOpenLoop": [
+    "django__django-15061",
+    "sphinx-doc__sphinx-8721"
+  ],
+  "lostVsOpenLoop": [
+    "scikit-learn__scikit-learn-13779"
+  ]
+}

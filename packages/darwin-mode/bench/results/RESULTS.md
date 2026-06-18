@@ -157,3 +157,19 @@ search/replace, deepseek-chat), **open-loop single-shot**.
 iterative agentic loops + frontier models; this is open-loop/single-shot/cheap. Lifts the ADR-098
 boundary (a real number now exists). Biggest lever: the repair loop with test feedback (ADR-126,
 omitted in the pilot) + large-repo patch production (48% empty). Repro: `bench/swebench/`.
+
+## 7. Closed-loop repair vs open-loop — controlled A/B (ADR-143)
+
+Same stratified 25 SWE-bench Lite instances; ADR-126 repair loop turned on (run FAIL_TO_PASS in
+the official Docker image, feed the traceback back, retry ≤3×). Independently re-confirmed by a
+clean batch `swebench` eval.
+
+| config | resolved | Wilson 95% CI | patches | errors |
+|---|---|---|---|---|
+| open-loop (ADR-142) | 3/25 = 12.0% | [4.2%, 30.0%] | 13 | 1 |
+| closed-loop (ADR-143) | **4/25 = 16.0%** | [6.4%, 34.7%] | 14 | 0 |
+
+**Honest:** +4pp, **within noise at n=25** (CIs overlap). But the mechanism is real — **2 of 4
+resolves came on attempt 2** via traceback feedback (django-15061, seaborn-3190); django-15061 +
+sphinx-8721 are newly cracked (pilot resolved no django/sphinx). Significance needs a larger
+sample → Stage B "scale". Spend so far ~$0.81 of $250.
