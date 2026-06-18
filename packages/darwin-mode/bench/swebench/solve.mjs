@@ -29,7 +29,7 @@ const OUT = rel(argv('--out', 'predictions.jsonl'));
 const REPORT = rel(argv('--report', 'solve-report.json'));
 const key = (process.env.OPENROUTER_API_KEY || readFileSync('/tmp/.orkey', 'utf8')).trim();
 
-let manifest = JSON.parse(readFileSync(join(HERE, 'pilot-sample-25.json'), 'utf8')).instances;
+let manifest = JSON.parse(readFileSync(rel(argv('--manifest', 'pilot-sample-25.json')), 'utf8')).instances;
 if (onlyInstance) manifest = manifest.filter((i) => i.instance_id === onlyInstance);
 
 // One baseline contextBuilder for all instances (the harness's real relevance ranker).
