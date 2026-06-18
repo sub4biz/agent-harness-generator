@@ -1,0 +1,110 @@
+{
+  "experiment": "ADR-135 — SWE-fix model frontier (resolve-rate per dollar)",
+  "corpus": [
+    "kernel-js",
+    "create-agent-harness",
+    "vertical-base"
+  ],
+  "config": "searchreplace / maxAttempts=2 / k=6",
+  "modelsTested": 4,
+  "frontier": [
+    {
+      "model": "deepseek/deepseek-chat",
+      "resolveRate": "3/3",
+      "resolved": 3,
+      "cost_usd": 0.0062,
+      "resolvePerDollar": 484,
+      "per": [
+        {
+          "i": "kernel-js",
+          "resolved": true,
+          "att": 1
+        },
+        {
+          "i": "create-agent-harness",
+          "resolved": true,
+          "att": 1
+        },
+        {
+          "i": "vertical-base",
+          "resolved": true,
+          "att": 1
+        }
+      ]
+    },
+    {
+      "model": "openai/gpt-5-mini",
+      "resolveRate": "3/3",
+      "resolved": 3,
+      "cost_usd": 0.0109,
+      "resolvePerDollar": 275,
+      "per": [
+        {
+          "i": "kernel-js",
+          "resolved": true,
+          "att": 1
+        },
+        {
+          "i": "create-agent-harness",
+          "resolved": true,
+          "att": 1
+        },
+        {
+          "i": "vertical-base",
+          "resolved": true,
+          "att": 1
+        }
+      ]
+    },
+    {
+      "model": "anthropic/claude-haiku-4.5",
+      "resolveRate": "3/3",
+      "resolved": 3,
+      "cost_usd": 0.0303,
+      "resolvePerDollar": 99,
+      "per": [
+        {
+          "i": "kernel-js",
+          "resolved": true,
+          "att": 1
+        },
+        {
+          "i": "create-agent-harness",
+          "resolved": true,
+          "att": 1
+        },
+        {
+          "i": "vertical-base",
+          "resolved": true,
+          "att": 1
+        }
+      ]
+    },
+    {
+      "model": "google/gemini-2.5-flash",
+      "resolveRate": "2/3",
+      "resolved": 2,
+      "cost_usd": 0.0091,
+      "resolvePerDollar": 220,
+      "per": [
+        {
+          "i": "kernel-js",
+          "resolved": false,
+          "att": 2
+        },
+        {
+          "i": "create-agent-harness",
+          "resolved": true,
+          "att": 1
+        },
+        {
+          "i": "vertical-base",
+          "resolved": true,
+          "att": 1
+        }
+      ]
+    }
+  ],
+  "best": "deepseek/deepseek-chat",
+  "verdict": "best resolve-rate: deepseek/deepseek-chat (3/3, $0.0062); cheapest full-resolve: deepseek/deepseek-chat — the SWE-fix task's cheap-beats-frontier check"
+}
