@@ -47,6 +47,7 @@ LLM, deterministic). **LLM** = one or more live OpenRouter calls (set
 | 131 | SWE runner generalizes to an external package | `node --experimental-strip-types bench/experiments/swe-external-kernel.mjs` | `results/swe-external-kernel.json` | resolves a real bug in kernel-js (not darwin-mode) — 2/2 F2P, 2/2 P2P, 1 attempt, $0.003 | LLM |
 | 132 | Multi-package self-hosted SWE corpus | `node --experimental-strip-types bench/experiments/swe-monorepo-corpus.mjs` | `results/swe-monorepo-corpus.json` | cross-package resolve-rate **4/4** (kernel-js, create-agent-harness, vertical-base, darwin-mode), $0.017, one runner | LLM |
 | 133 | Evolve the harness vs cross-package SWE fitness (capstone) | `node --experimental-strip-types bench/experiments/swe-evolve-corpus.mjs` | `results/swe-evolve-corpus.json` | (1+λ) evolve over 3 external pkgs; elite improves gen0→gen1 (3/3 at lower cost); converges to cheapest-sufficient genome | LLM |
+| 134 | Capability-driven evolution (completes 133) | `node --experimental-strip-types bench/experiments/swe-evolve-capability.mjs` | `results/swe-evolve-capability.json` | discriminating corpus: searchreplace/a1 resolves multi-fault 2/2; wholefile/a1 only 1/2 → evolution selects searchreplace by capability | LLM |
 
 DRACO (`results/draco-quality-cost-frontier.json`, ADR-037–040 lineage) and the
 human-readable summary (`results/RESULTS.md`) accompany these.

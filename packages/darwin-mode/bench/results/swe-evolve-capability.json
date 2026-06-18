@@ -1,0 +1,49 @@
+{
+  "experiment": "ADR-134 — capability-driven evolution on a discriminating corpus (completes ADR-133)",
+  "model": "google/gemini-2.5-flash",
+  "corpus": [
+    "two-fault",
+    "vertical-base"
+  ],
+  "generations": 2,
+  "configsEvaluated": 4,
+  "trajectory": [
+    {
+      "gen": 0,
+      "best": "searchreplace/a1/k6",
+      "bestResolved": "2/2",
+      "bestCost": 0.0045,
+      "evaluated": [
+        "searchreplace/a1/k6:2/2",
+        "wholefile/a3/k6:2/2",
+        "wholefile/a1/k6:1/2"
+      ]
+    },
+    {
+      "gen": 1,
+      "best": "searchreplace/a3/k6",
+      "bestResolved": "2/2",
+      "bestCost": 0.0045,
+      "evaluated": [
+        "searchreplace/a3/k6:2/2"
+      ]
+    }
+  ],
+  "evolvedWinner": {
+    "genome": "searchreplace/a1/k6",
+    "resolved": "2/2",
+    "cost_usd": 0.0045,
+    "perInstance": [
+      {
+        "i": "two-fault",
+        "resolved": true
+      },
+      {
+        "i": "vertical-base",
+        "resolved": true
+      }
+    ]
+  },
+  "totalCost_usd": 0.0485,
+  "verdict": "CAPABILITY-SELECTED: evolution chose 'searchreplace/a1/k6' (2/2) — search/replace resolves the multi-fault instance whole-file CANNOT; fitness climbed by RESOLVE-RATE, not cost (contrast ADR-133)"
+}
