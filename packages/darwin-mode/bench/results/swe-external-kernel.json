@@ -1,0 +1,21 @@
+{
+  "experiment": "ADR-131 — runSweBenchTask on an EXTERNAL package (kernel-js)",
+  "externalPackage": "kernel-js",
+  "result": {
+    "instance_id": "kernel-js__trajectory-rotate",
+    "resolved": true,
+    "f2p": "2/2",
+    "p2p": "2/2",
+    "FAIL_TO_PASS": 2,
+    "PASS_TO_PASS": 2,
+    "attemptsUsed": 1,
+    "maxAttempts": 3,
+    "chose": [
+      "trajectory.ts"
+    ],
+    "patchBytes": 547,
+    "tokens": 8989,
+    "cost_usd": 0.0008635671
+  },
+  "verdict": "GENERALIZES: the SWE runner resolved a real bug in an external package (kernel-js/trajectory.ts) — 2/2 F2P, 2/2 P2P, 1 attempt(s), $0.0009"
+}
