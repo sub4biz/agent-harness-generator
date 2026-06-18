@@ -24,6 +24,7 @@ const argv = (f, d) => { const i = args.indexOf(f); return i >= 0 ? args[i + 1] 
 const onlyInstance = argv('--instance', null);
 const ATTEMPTS = +argv('--attempts', 3);
 const K = +argv('--k', 15);
+const LOCALIZE = args.includes('--localize');
 const MODEL = argv('--model', 'deepseek/deepseek-chat');
 const rel = (p) => (isAbsolute(p) ? p : join(HERE, p));
 const OUT = rel(argv('--out', 'predictions-repair.jsonl'));
@@ -31,7 +32,7 @@ const REPORT = rel(argv('--report', 'solve-repair-report.json'));
 const VENV = '/tmp/swebench-venv';
 const key = (process.env.OPENROUTER_API_KEY || readFileSync('/tmp/.orkey', 'utf8')).trim();
 
-let manifest = JSON.parse(readFileSync(join(HERE, 'pilot-sample-25.json'), 'utf8')).instances;
+let manifest = JSON.parse(readFileSync(rel(argv('--manifest', 'pilot-sample-25.json')), 'utf8')).instances;
 if (onlyInstance) manifest = manifest.filter((i) => i.instance_id === onlyInstance);
 
 const hr = mkdtempSync(join(tmpdir(), 'sbr-h-')); mkdirSync(join(hr, 'src'), { recursive: true });
@@ -80,6 +81,18 @@ function evalOne(instanceId, patch, runId) {
   return { resolved, logTail };
 }
 
+// LLM file localization (ADR-146), same as solve.mjs — used when --localize is set.
+async function localize(problem, work, files, k, pre = 120) {
+  const lexTop = selectFiles(problem, work, files, buildContext, pre);
+  const sigOf = (f) => { const lines = readFileSync(join(work, f), 'utf8').split('\n'); const sigs = lines.filter((l) => /^\s*(class|def|async def)\s+\w/.test(l)).map((l) => l.trim().replace(/:\s*$/, '')).slice(0, 8); return sigs.length ? `${f}\n    ${sigs.join('\n    ')}` : f; };
+  const prompt = `A bug is reported below. From the candidate files (path + top signatures), list ONLY the file paths most likely to contain the fix, most-likely first, one per line, at most ${k}. Output paths verbatim, nothing else.\n--- problem ---\n${problem.slice(0, 4000)}\n--- candidate files ---\n${lexTop.map(sigOf).join('\n').slice(0, 24000)}\n`;
+  try {
+    const { raw, cost } = await llm(prompt);
+    const picked = raw.split('\n').map((l) => l.trim().replace(/^[-*\d.\s]+/, '')).filter((l) => files.includes(l));
+    return { selected: [...new Set([...picked, ...lexTop])].slice(0, k), cost };
+  } catch { return { selected: lexTop.slice(0, k), cost: 0 }; }
+}
+
 writeFileSync(OUT, ''); const report = []; let totalCost = 0;
 for (const inst of manifest) {
   const t0 = Date.now(); const row = { instance_id: inst.instance_id, repo: inst.repo, attempts: 0, resolved: false };
@@ -89,7 +102,9 @@ for (const inst of manifest) {
     const allPy = g(work, "git ls-files '*.py'").toString().split('\n').filter(Boolean)
       .filter((f) => !/(^|\/)(tests?|testing|site-packages|\.tox|build|dist)\//i.test(f) && !/(^|\/)(test_|conftest)/i.test(f) && !/_test\.py$/.test(f))
       .filter((f) => { try { return statSync(join(work, f)).size <= 100_000; } catch { return false; } });
-    const selected = selectFiles(inst.problem_statement, work, allPy, buildContext, K);
+    let selected;
+    if (LOCALIZE) { const lz = await localize(inst.problem_statement, work, allPy, K); selected = lz.selected; totalCost += lz.cost; }
+    else selected = selectFiles(inst.problem_statement, work, allPy, buildContext, K);
     row.candidateFiles = allPy.length;
     const seen = selected.map((f) => `# ===== ${f} =====\n${readFileSync(join(work, f), 'utf8').slice(0, 45000)}`).join('\n\n');
     let feedback = '';
