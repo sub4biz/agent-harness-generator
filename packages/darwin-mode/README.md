@@ -273,7 +273,7 @@ substrate is **no longer deferred** — it shipped (ADR-106→141) and now runs 
 
 ### Canonical SWE-bench Lite (real, official harness — ADR-142–149)
 
-> Full reproducible evidence + per-run provenance: [`bench/results/RESULTS.md`](bench/results/RESULTS.md) · known-flaky exclusions: [`bench/swebench/KNOWN_FLAKY.md`](bench/swebench/KNOWN_FLAKY.md)
+> Full reproducible evidence: [`bench/results/RESULTS.md`](bench/results/RESULTS.md) · measured best-practices: [`LEARNINGS.md`](LEARNINGS.md) · known-flaky exclusions: [`bench/swebench/KNOWN_FLAKY.md`](bench/swebench/KNOWN_FLAKY.md)
 
 Run on the **full 300** SWE-bench Lite (test) instances, scored by the **official
 `swebench` Docker harness** — no cherry-picking, tight CIs. Solver = relevance-ranked

@@ -2,6 +2,10 @@
 
 All notable changes to this package. Dates UTC.
 
+## 0.2.3 — 2026-06-19
+
+- Add `LEARNINGS.md` — the measured findings distilled into harness defaults (repair=2x lever, cost-routing, Barbarian&Scholar tiering, format-contract, batch-eval discipline, capability floor).
+
 ## 0.2.2 — 2026-06-19
 
 - **Docs: full SWE-bench Lite (300) evidence ladder** now in the description + README, all official `swebench` Docker harness, batch-verified:
