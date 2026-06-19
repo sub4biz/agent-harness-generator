@@ -1,17 +1,26 @@
 # @metaharness/darwin
 
-> Darwin Mode — **the model is frozen; the harness evolves.**
+> **An LLM supercharger and cost optimizer.** Keep your model frozen — evolve the
+> harness around it so a *cheap* model performs like an expensive one, for a fraction
+> of the cost.
 
-Bounded, empirical, population-based self-improvement of an agent harness
-(ADR-070…075). "Self-improving agents" is widely misread as "the model trains
-itself." Darwin Mode ships the practical version: an agent **modifies its own
-harness**, runs benchmarks in a sandbox, keeps the variants that *measurably*
-improve, and builds an **archive of successful descendants**. The foundation
-model never changes — what evolves is the operating system around it (planner,
-context builder, reviewer, retry/tool/memory/score policy). This follows the
-**Darwin Gödel Machine** lineage: iteratively mutate the source of a coding
-agent, then *empirically validate* each variant — no weight updates, just a
-population, a benchmark, and an archive.
+Darwin Mode makes the LLM you already use **measurably better and cheaper** by
+evolving the *operating system around it* — planner, context builder, reviewer,
+retry/tool/memory/score policy — instead of paying for a bigger model. It mutates one
+surface at a time, tests each change in a sandbox, and keeps only what *measurably*
+improves, building an archive of successful descendants. No weight updates, no
+fine-tuning — just a population, a benchmark, and an archive.
+
+**Why it pays off (measured, not marketing):**
+- **Cheap beats frontier.** On a 15-model × 6-language execution benchmark, DeepSeek-V3
+  ($0.4/Mtok) tops quality-per-dollar — and the harness, not the model, is the lever (ADR-085).
+- **Real bug-fixing for pennies.** Resolves real **SWE-bench Lite** issues at **~$0.01/instance**
+  with a sub-$1/Mtok model (ADR-142–146) — vs. $1–20/instance for frontier-model agents.
+- **The harness is the multiplier.** Evolving context-window/selection/retry policy lifts a
+  fixed model's measured outcomes (e.g. `finalScore 0.765 → 0.985`, ADR-103) — same model, better results.
+
+This follows the **Darwin Gödel Machine** lineage: iteratively mutate the source of a
+coding agent, then *empirically validate* each variant.
 
 ```
 repo

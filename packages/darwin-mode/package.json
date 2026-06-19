@@ -1,7 +1,7 @@
 {
   "name": "@metaharness/darwin",
-  "version": "0.2.0",
-  "description": "Darwin Mode (ADR-070…075) — bounded, empirical, population-based self-improvement of an agent harness. Generate child harness variants, sandbox-score them, archive the lineage, and promote only measured, safe wins. The model is frozen; the harness evolves. Dependency-free (Node built-ins only).",
+  "version": "0.2.1",
+  "description": "An LLM supercharger and cost optimizer: keep your model frozen and evolve the harness around it so a cheap model performs like an expensive one — measurably better, far cheaper. Mutate→sandbox→score→archive; promote only safe, measured wins. Validated on real SWE-bench Lite (~$0.01/instance). Dependency-free (Node built-ins).",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -26,15 +26,18 @@
     "lint": "tsc --noEmit"
   },
   "keywords": [
+    "llm",
+    "cost-optimization",
+    "llm-optimizer",
+    "cheap-llm",
+    "compute-arbitrage",
     "agent-harness",
-    "darwin-mode",
     "self-improvement",
     "evolutionary-search",
+    "swe-bench",
     "metaharness",
-    "dgm",
-    "archive",
-    "sandbox",
-    "benchmark"
+    "darwin-mode",
+    "sandbox"
   ],
   "author": "rUv <ruv@ruv.net>",
   "license": "MIT",
