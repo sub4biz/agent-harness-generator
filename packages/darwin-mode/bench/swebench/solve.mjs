@@ -28,7 +28,10 @@ const MODEL = argv('--model', 'deepseek/deepseek-chat');
 const rel = (p) => (isAbsolute(p) ? p : join(HERE, p));
 const OUT = rel(argv('--out', 'predictions.jsonl'));
 const REPORT = rel(argv('--report', 'solve-report.json'));
-const key = (process.env.OPENROUTER_API_KEY || readFileSync('/tmp/.orkey', 'utf8')).trim();
+const BASE_URL = ((args.indexOf('--base-url')>=0?args[args.indexOf('--base-url')+1]:'https://openrouter.ai/api/v1')).replace(/\/$/, '');
+const CHAT_URL = `${BASE_URL}/chat/completions`;
+const KEY_ENV = args.indexOf('--api-key-env')>=0?args[args.indexOf('--api-key-env')+1]:'OPENROUTER_API_KEY';
+const key = (process.env[KEY_ENV] || (() => { try { return readFileSync('/tmp/.orkey','utf8'); } catch { return ''; } })()).trim();
 
 let manifest = JSON.parse(readFileSync(rel(argv('--manifest', 'pilot-sample-25.json')), 'utf8')).instances;
 if (onlyInstance) manifest = manifest.filter((i) => i.instance_id === onlyInstance);
@@ -90,7 +93,7 @@ async function localize(problem, work, files, buildContext, k, pre = 120) {
   const prompt = `A bug is reported below. From the candidate files (path + top signatures), list ONLY the file paths most likely to contain the fix, most-likely first, one per line, at most ${k}. Output paths verbatim, nothing else.\n--- problem ---\n${problem.slice(0, 4000)}\n--- candidate files ---\n${listing.slice(0, 24000)}\n`;
   let cost = 0;
   try {
-    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', { method: 'POST', headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ model: MODEL, messages: [{ role: 'user', content: prompt }], max_tokens: 400, temperature: 0 }) });
+    const res = await fetch(CHAT_URL, { method: 'POST', headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ model: MODEL, messages: [{ role: 'user', content: prompt }], max_tokens: 400, temperature: 0 }) });
     const j = await res.json(); cost = j.usage?.cost ?? 0;
     const raw = j.choices?.[0]?.message?.content ?? '';
     const picked = raw.split('\n').map((l) => l.trim().replace(/^[-*\d.\s]+/, '')).filter((l) => files.includes(l));
@@ -115,7 +118,7 @@ for (const inst of manifest) {
     row.candidateFiles = all.length; row.selected = selected;
     const seen = selected.map((f) => `# ===== ${f} =====\n${readFileSync(join(work, f), 'utf8').slice(0, 45000)}`).join('\n\n');
     const prompt = `Fix the bug described below by editing the selected real source files. For EACH change emit a block EXACTLY:\nFILE: <one selected path>\n<<<SEARCH\n<exact lines copied verbatim from that file>\n=======\n<replacement lines>\n>>>REPLACE\nThe SEARCH text must match the file character-for-character (incl. indentation). Emit multiple blocks if needed. No prose outside blocks.\n--- problem statement ---\n${inst.problem_statement.slice(0, 6000)}\n--- selected source files ---\n${seen}\n`;
-    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', { method: 'POST', headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ model: MODEL, messages: [{ role: 'user', content: prompt }], max_tokens: 4096, temperature: 0 }) });
+    const res = await fetch(CHAT_URL, { method: 'POST', headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ model: MODEL, messages: [{ role: 'user', content: prompt }], max_tokens: 4096, temperature: 0 }) });
     const j = await res.json();
     totalTok += j.usage?.total_tokens ?? 0; totalCost += j.usage?.cost ?? 0; row.cost_usd = j.usage?.cost ?? 0;
     const raw = j.choices?.[0]?.message?.content ?? '';

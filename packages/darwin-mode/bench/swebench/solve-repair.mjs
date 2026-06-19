@@ -30,7 +30,13 @@ const rel = (p) => (isAbsolute(p) ? p : join(HERE, p));
 const OUT = rel(argv('--out', 'predictions-repair.jsonl'));
 const REPORT = rel(argv('--report', 'solve-repair-report.json'));
 const VENV = '/tmp/swebench-venv';
-const key = (process.env.OPENROUTER_API_KEY || readFileSync('/tmp/.orkey', 'utf8')).trim();
+// ADR-150: configurable OpenAI-compatible endpoint (default OpenRouter; point --base-url at a
+// tailscale-served local model, e.g. http://ruv-mac-mini:8000/v1). --api-key-env names the env
+// var holding the key; a keyless local endpoint works (empty bearer tolerated).
+const BASE_URL = (argv('--base-url', 'https://openrouter.ai/api/v1')).replace(/\/$/, '');
+const CHAT_URL = `${BASE_URL}/chat/completions`;
+const KEY_ENV = argv('--api-key-env', 'OPENROUTER_API_KEY');
+const key = (process.env[KEY_ENV] || (() => { try { return readFileSync('/tmp/.orkey', 'utf8'); } catch { return ''; } })()).trim();
 
 let manifest = JSON.parse(readFileSync(rel(argv('--manifest', 'pilot-sample-25.json')), 'utf8')).instances;
 if (onlyInstance) manifest = manifest.filter((i) => i.instance_id === onlyInstance);
@@ -73,7 +79,7 @@ async function llm(prompt) {
   for (let attempt = 0; attempt < 5; attempt++) {
     if (attempt) await new Promise((r) => setTimeout(r, 2000 * 2 ** (attempt - 1))); // 2,4,8,16s
     try {
-      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', { method: 'POST', headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ model: MODEL, messages: [{ role: 'user', content: prompt }], max_tokens: 4096, temperature: 0 }) });
+      const res = await fetch(CHAT_URL, { method: 'POST', headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ model: MODEL, messages: [{ role: 'user', content: prompt }], max_tokens: 4096, temperature: 0 }) });
       if (!res.ok && (res.status === 429 || res.status >= 500)) { lastErr = new Error(`http ${res.status}`); continue; }
       const j = await res.json(); return { raw: j.choices?.[0]?.message?.content ?? '', cost: j.usage?.cost ?? 0 };
     } catch (e) { lastErr = e; }
