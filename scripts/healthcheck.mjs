@@ -54,10 +54,15 @@ const CHECKS = {
     // `@metaharness/kernel` dep can caret-resolve the wasm kernel — they were
     // already published off the monorepo cadence at 0.1.1). Treat both as
     // independently-versioned, like metaharness/router/lib.
+    // @metaharness/darwin (Darwin Mode) is a standalone published library on its
+    // own results-driven semver — it ships to npm whenever a measured benchmark
+    // milestone lands (0.1.0 → 0.2.8 across the SWE-bench arc), independent of the
+    // monorepo version. Treat it like metaharness/router/kernel.
     const INDEPENDENT = new Set([
       'metaharness',
       '@ruvnet/agent-harness-generator',
       '@metaharness/router',
+      '@metaharness/darwin',
       '@metaharness/kernel',
       '@metaharness/host-claude-code',
       '@metaharness/host-codex',
