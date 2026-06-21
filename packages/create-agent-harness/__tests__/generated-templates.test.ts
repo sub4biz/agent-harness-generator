@@ -123,9 +123,13 @@ describe('generated templates scaffold cleanly', () => {
       expect(license).toContain('MIT License');
 
       // Regression for issue #24: the generated README must not overclaim a WASM
-      // kernel that the published beta doesn't ship (it resolves to js).
+      // kernel that the published beta doesn't ship (it resolves to js). Guard the
+      // bare "WASM kernel" phrasing in ANY wording — the honest line says the
+      // kernel "resolves native → wasm → js (js backend in the published beta)".
+      // (The original assertion matched only one exact string; the vertical:devops
+      // variant "WASM kernel, multi-host, witness-signed" slipped past it.)
       const readme = await readFile(join(target, 'README.md'), 'utf-8');
-      expect(readme).not.toContain('WASM kernel, multi-host support, witness-signed releases');
+      expect(readme, `${t.id} README overclaims a bare "WASM kernel"`).not.toMatch(/WASM kernel/i);
 
       // One agent file per declared agent.
       for (const a of t.agents) {
