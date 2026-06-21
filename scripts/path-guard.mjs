@@ -33,6 +33,14 @@ const SCAN_DIRS = ['packages', 'crates', 'scripts', 'apps'];
 const SKIP_DIRS = new Set([
   'node_modules', 'target', 'dist', 'pkg', '__tests__', 'tests',
   'templates', '.git', 'coverage',
+  // `bench/` holds Linux+Docker-only research/eval scripts (the SWE-bench
+  // solvers coordinate with a python `swebench` harness + venv at fixed
+  // `/tmp` paths, by design). They are NOT shipped in any package's npm
+  // tarball and are never run on Windows — so the cross-platform path
+  // guard, which polices *production* code, intentionally excludes them
+  // (like `templates`/`tests`). Production code that reads a temp path must
+  // still use os.tmpdir(); see src/ which remains scanned.
+  'bench',
 ]);
 const SCAN_EXT = new Set(['.ts', '.tsx', '.mjs', '.js', '.cjs', '.rs']);
 // Files that legitimately reference the bad patterns AS the scanner-side

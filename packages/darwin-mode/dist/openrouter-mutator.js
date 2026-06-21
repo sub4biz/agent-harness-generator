@@ -12,15 +12,20 @@
 // see ADR-085 polyglot benchmark. NOTE: do NOT default to haiku-4.5 if the
 // harness ever emits a compiled language — it fails to compile Rust/C++/C there).
 import { readFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 function apiKey() {
     const env = (process.env.OPENROUTER_API_KEY || '').trim();
     if (env)
         return env;
+    // Dev-convenience fallback: a key file in the OS temp dir. Use os.tmpdir() so
+    // it resolves cross-platform (path-guard: `/tmp` is Linux-only).
+    const keyFile = join(tmpdir(), '.orkey');
     try {
-        return readFileSync('/tmp/.orkey', 'utf8').trim();
+        return readFileSync(keyFile, 'utf8').trim();
     }
     catch {
-        throw new Error('OpenRouterMutator: no OPENROUTER_API_KEY (env or /tmp/.orkey)');
+        throw new Error(`OpenRouterMutator: no OPENROUTER_API_KEY (env or ${keyFile})`);
     }
 }
 /** Strip a fenced code block if the model wrapped its output. */
